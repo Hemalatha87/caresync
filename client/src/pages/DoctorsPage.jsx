@@ -194,9 +194,9 @@ export default function DoctorsPage() {
             placeholder="e.g. Dr. Elena, Dermatologist..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
           />
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
         </div>
       </div>
 
@@ -206,10 +206,10 @@ export default function DoctorsPage() {
         <select
           value={specialization}
           onChange={(e) => setSpecialization(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
         >
           {SPECIALIZATIONS.map((spec) => (
-            <option key={spec} value={spec} className="dark:bg-slate-900">{spec}</option>
+            <option key={spec} value={spec} className="dark:bg-slate-900 dark:text-white">{spec}</option>
           ))}
         </select>
       </div>
@@ -223,9 +223,9 @@ export default function DoctorsPage() {
             placeholder="e.g. Tenali, Hyderabad, Guntur..."
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
           />
-          <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
         </div>
       </div>
 
@@ -238,14 +238,14 @@ export default function DoctorsPage() {
             placeholder="Min (₹)"
             value={minFee}
             onChange={(e) => setMinFee(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
           />
           <input
             type="number"
             placeholder="Max (₹)"
             value={maxFee}
             onChange={(e) => setMaxFee(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
           />
         </div>
       </div>
@@ -256,12 +256,12 @@ export default function DoctorsPage() {
         <select
           value={consultationType}
           onChange={(e) => setConsultationType(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
         >
-          <option value="All" className="dark:bg-slate-900">All Formats</option>
-          <option value="In-Clinic" className="dark:bg-slate-900">In-Clinic Consultation</option>
-          <option value="Video Consultation" className="dark:bg-slate-900">Video Consultation</option>
-          <option value="Both" className="dark:bg-slate-900">In-Clinic & Video (Both)</option>
+          <option value="All" className="dark:bg-slate-900 dark:text-white">All Formats</option>
+          <option value="In-Clinic" className="dark:bg-slate-900 dark:text-white">In-Clinic Consultation</option>
+          <option value="Video Consultation" className="dark:bg-slate-900 dark:text-white">Video Consultation</option>
+          <option value="Both" className="dark:bg-slate-900 dark:text-white">In-Clinic & Video (Both)</option>
         </select>
       </div>
 
@@ -271,12 +271,12 @@ export default function DoctorsPage() {
         <select
           value={availability}
           onChange={(e) => setAvailability(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
         >
-          <option value="All" className="dark:bg-slate-900">Anytime</option>
-          <option value="Available Today" className="dark:bg-slate-900">Available Today</option>
-          <option value="Available Tomorrow" className="dark:bg-slate-900">Available Tomorrow</option>
-          <option value="Available This Week" className="dark:bg-slate-900">Available This Week</option>
+          <option value="All" className="dark:bg-slate-900 dark:text-white">Anytime</option>
+          <option value="Available Today" className="dark:bg-slate-900 dark:text-white">Available Today</option>
+          <option value="Available Tomorrow" className="dark:bg-slate-900 dark:text-white">Available Tomorrow</option>
+          <option value="Available This Week" className="dark:bg-slate-900 dark:text-white">Available This Week</option>
         </select>
       </div>
 
@@ -289,7 +289,7 @@ export default function DoctorsPage() {
             value={date}
             min={new Date().toISOString().split('T')[0]}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
           />
         </div>
       </div>
@@ -300,13 +300,13 @@ export default function DoctorsPage() {
         <select
           value={experience}
           onChange={(e) => setExperience(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
         >
-          <option value="" className="dark:bg-slate-900">Any Experience</option>
-          <option value="3" className="dark:bg-slate-900">3+ Years</option>
-          <option value="5" className="dark:bg-slate-900">5+ Years</option>
-          <option value="10" className="dark:bg-slate-900">10+ Years</option>
-          <option value="15" className="dark:bg-slate-900">15+ Years</option>
+          <option value="" className="dark:bg-slate-900 dark:text-white">Any Experience</option>
+          <option value="3" className="dark:bg-slate-900 dark:text-white">3+ Years</option>
+          <option value="5" className="dark:bg-slate-900 dark:text-white">5+ Years</option>
+          <option value="10" className="dark:bg-slate-900 dark:text-white">10+ Years</option>
+          <option value="15" className="dark:bg-slate-900 dark:text-white">15+ Years</option>
         </select>
       </div>
 
@@ -316,13 +316,13 @@ export default function DoctorsPage() {
         <select
           value={rating}
           onChange={(e) => setRating(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
         >
-          <option value="" className="dark:bg-slate-900">Any Rating</option>
-          <option value="4.8" className="dark:bg-slate-900">4.8+ Stars (Top Rated)</option>
-          <option value="4.5" className="dark:bg-slate-900">4.5+ Stars</option>
-          <option value="4.0" className="dark:bg-slate-900">4.0+ Stars</option>
-          <option value="3.5" className="dark:bg-slate-900">3.5+ Stars</option>
+          <option value="" className="dark:bg-slate-900 dark:text-white">Any Rating</option>
+          <option value="4.8" className="dark:bg-slate-900 dark:text-white">4.8+ Stars (Top Rated)</option>
+          <option value="4.5" className="dark:bg-slate-900 dark:text-white">4.5+ Stars</option>
+          <option value="4.0" className="dark:bg-slate-900 dark:text-white">4.0+ Stars</option>
+          <option value="3.5" className="dark:bg-slate-900 dark:text-white">3.5+ Stars</option>
         </select>
       </div>
 
@@ -338,7 +338,7 @@ export default function DoctorsPage() {
               className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${
                 gender === g
                   ? 'bg-brand-600 dark:bg-cyan-600 text-white border-brand-600 dark:border-cyan-600 shadow-xs'
-                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300'
               }`}
             >
               {g}
@@ -458,14 +458,14 @@ export default function DoctorsPage() {
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none cursor-pointer"
                 >
-                  <option value="relevance" className="dark:bg-slate-900">Relevance</option>
-                  <option value="rating" className="dark:bg-slate-900">Rating: High to Low</option>
-                  <option value="experience" className="dark:bg-slate-900">Experience: High to Low</option>
-                  <option value="fee-low" className="dark:bg-slate-900">Consultation Fee: Low to High</option>
-                  <option value="fee-high" className="dark:bg-slate-900">Consultation Fee: High to Low</option>
-                  <option value="availability" className="dark:bg-slate-900">Earliest Availability</option>
+                  <option value="relevance" className="dark:bg-slate-900 dark:text-white">Relevance</option>
+                  <option value="rating" className="dark:bg-slate-900 dark:text-white">Rating: High to Low</option>
+                  <option value="experience" className="dark:bg-slate-900 dark:text-white">Experience: High to Low</option>
+                  <option value="fee-low" className="dark:bg-slate-900 dark:text-white">Consultation Fee: Low to High</option>
+                  <option value="fee-high" className="dark:bg-slate-900 dark:text-white">Consultation Fee: High to Low</option>
+                  <option value="availability" className="dark:bg-slate-900 dark:text-white">Earliest Availability</option>
                 </select>
               </div>
             </div>

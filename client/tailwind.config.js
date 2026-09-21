@@ -24,6 +24,9 @@ export default {
           darkCard: '#111B33',
           darkBorder: '#1E293B',
         },
+        slate: {
+          850: '#0F172A',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],

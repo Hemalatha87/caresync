@@ -11,6 +11,11 @@
   html.dark body {
     @apply bg-[#080E1E] text-slate-100;
   }
+
+  input, select, textarea {
+    @apply text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400;
+    color-scheme: light dark;
+  }
 }
 
 @layer utilities {
