@@ -49,21 +49,21 @@ export default function PatientDashboard() {
   const cancelledCount = appointments.filter(a => a.status === 'cancelled').length;
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-28 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#080E1E] pt-28 pb-20 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Sidebar Navigation */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+            <div className="bg-white dark:bg-[#111B33] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
                 <div className="w-12 h-12 rounded-2xl bg-brand-600 text-white font-extrabold flex items-center justify-center text-lg">
                   {user?.name?.charAt(0) || 'P'}
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-sm truncate">{user?.name}</h3>
-                  <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full uppercase">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm truncate">{user?.name}</h3>
+                  <span className="text-[10px] font-bold text-brand-600 dark:text-cyan-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full uppercase">
                     Patient Account
                   </span>
                 </div>
@@ -73,7 +73,9 @@ export default function PatientDashboard() {
                 <button
                   onClick={() => setActiveTab('overview')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${
-                    activeTab === 'overview' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'
+                    activeTab === 'overview'
+                      ? 'bg-brand-600 dark:bg-cyan-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   <Calendar className="w-4 h-4" /> Appointments Overview
@@ -81,9 +83,9 @@ export default function PatientDashboard() {
 
                 <Link
                   to="/doctors"
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                 >
-                  <Search className="w-4 h-4 text-cyan-600" /> Find a Specialist
+                  <Search className="w-4 h-4 text-cyan-600 dark:text-cyan-400" /> Find a Specialist
                 </Link>
 
                 <button
@@ -91,7 +93,7 @@ export default function PatientDashboard() {
                     logout();
                     navigate('/');
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-rose-600 hover:bg-rose-50 transition-all text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all text-left"
                 >
                   <LogOut className="w-4 h-4" /> Sign Out
                 </button>
@@ -104,25 +106,25 @@ export default function PatientDashboard() {
             
             {/* Top Metric Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Upcoming</span>
-                <p className="text-3xl font-extrabold text-brand-600">{upcomingCount}</p>
+              <div className="bg-white dark:bg-[#111B33] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
+                <span className="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Upcoming</span>
+                <p className="text-3xl font-extrabold text-brand-600 dark:text-cyan-400">{upcomingCount}</p>
               </div>
 
-              <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Completed</span>
-                <p className="text-3xl font-extrabold text-emerald-600">{completedCount}</p>
+              <div className="bg-white dark:bg-[#111B33] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
+                <span className="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Completed</span>
+                <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">{completedCount}</p>
               </div>
 
-              <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cancelled</span>
-                <p className="text-3xl font-extrabold text-rose-500">{cancelledCount}</p>
+              <div className="bg-white dark:bg-[#111B33] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
+                <span className="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Cancelled</span>
+                <p className="text-3xl font-extrabold text-rose-500 dark:text-rose-400">{cancelledCount}</p>
               </div>
             </div>
 
             {/* Appointments List */}
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-slate-900">Your Scheduled Appointments</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Your Scheduled Appointments</h2>
 
               {loading ? (
                 <DashboardSkeleton />
@@ -132,7 +134,7 @@ export default function PatientDashboard() {
                   message="You currently have no scheduled appointments with CareSync specialists."
                   icon="calendar"
                   action={
-                    <Link to="/doctors" className="px-5 py-2.5 bg-brand-600 text-white rounded-xl font-bold text-xs">
+                    <Link to="/doctors" className="px-5 py-2.5 bg-brand-600 dark:bg-cyan-600 text-white rounded-xl font-bold text-xs">
                       Find a Doctor Now
                     </Link>
                   }
