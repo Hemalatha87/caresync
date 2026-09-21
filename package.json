@@ -1,0 +1,14 @@
+{
+  "name": "caresync-platform",
+  "version": "1.0.0",
+  "description": "CareSync – Smart Healthcare Appointment Platform",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install-all": "npm --prefix server install && npm --prefix client install",
+    "build": "npm --prefix client install && npm --prefix client run build && npm --prefix server install",
+    "start": "npm --prefix server start",
+    "dev": "npm --prefix server start",
+    "seed": "npm --prefix server run seed"
+  }
+}
