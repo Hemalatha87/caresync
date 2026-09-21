@@ -30,6 +30,12 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
@@ -39,8 +45,19 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Global 404
-app.use((req, res) => {
+// Serve frontend build in production
+const clientDistPath = path.join(__dirname, '../client/dist');
+app.use(express.static(clientDistPath));
+
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(clientDistPath, 'index.html'), (err) => {
+    if (err) next();
+  });
+});
+
+// Global API 404
+app.use('/api/*', (req, res) => {
   res.status(404).json({ success: false, message: 'CareSync API Route Not Found' });
 });
 
