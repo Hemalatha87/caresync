@@ -1,49 +1,117 @@
 import Doctor from '../models/Doctor.js';
+import Appointment from '../models/Appointment.js';
 
-// @desc    Get all doctors with filtering & search
+// @desc    Get all doctors with advanced filtering & search
 // @route   GET /api/doctors
 export const getDoctors = async (req, res) => {
   try {
-    const { search, specialization, city, minFee, maxFee, minRating, minExperience, sort, page = 1, limit = 12 } = req.query;
+    const {
+      search,
+      name,
+      specialization,
+      location,
+      city,
+      gender,
+      consultationType,
+      minFee,
+      maxFee,
+      minRating,
+      rating,
+      minExperience,
+      experience,
+      availability,
+      sort,
+      page = 1,
+      limit = 12,
+    } = req.query;
 
     const query = {};
 
-    if (search) {
+    // 1. Name or General Search
+    const searchVal = search || name;
+    if (searchVal && searchVal.trim()) {
+      const term = searchVal.trim();
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { specialization: { $regex: search, $options: 'i' } },
-        { 'clinic.name': { $regex: search, $options: 'i' } },
-        { 'clinic.city': { $regex: search, $options: 'i' } },
+        { name: { $regex: term, $options: 'i' } },
+        { specialization: { $regex: term, $options: 'i' } },
+        { 'clinic.name': { $regex: term, $options: 'i' } },
+        { 'clinic.city': { $regex: term, $options: 'i' } },
+        { 'clinic.address': { $regex: term, $options: 'i' } },
+        { location: { $regex: term, $options: 'i' } },
       ];
     }
 
-    if (specialization && specialization !== 'All') {
-      query.specialization = { $regex: specialization, $options: 'i' };
+    // 2. Specialization Filter
+    if (specialization && specialization !== 'All' && specialization.trim()) {
+      query.specialization = { $regex: specialization.trim(), $options: 'i' };
     }
 
-    if (city) {
-      query['clinic.city'] = { $regex: city, $options: 'i' };
+    // 3. Location / City Filter
+    const locationVal = location || city;
+    if (locationVal && locationVal.trim()) {
+      const locTerm = locationVal.trim();
+      query.$or = [
+        ...(query.$or || []),
+        { 'clinic.city': { $regex: locTerm, $options: 'i' } },
+        { 'clinic.address': { $regex: locTerm, $options: 'i' } },
+        { location: { $regex: locTerm, $options: 'i' } },
+      ];
     }
 
+    // 4. Gender Filter
+    if (gender && gender !== 'All' && gender.trim()) {
+      query.gender = { $regex: `^${gender.trim()}$`, $options: 'i' };
+    }
+
+    // 5. Consultation Type Filter
+    if (consultationType && consultationType !== 'All' && consultationType.trim()) {
+      const cType = consultationType.trim();
+      if (cType === 'In-Clinic') {
+        query.consultationType = { $in: ['In-Clinic', 'Both'] };
+      } else if (cType === 'Video' || cType === 'Video Consultation') {
+        query.consultationType = { $in: ['Video Consultation', 'Both'] };
+      } else {
+        query.consultationType = { $regex: cType, $options: 'i' };
+      }
+    }
+
+    // 6. Consultation Fee Range
     if (minFee || maxFee) {
       query.consultationFee = {};
       if (minFee) query.consultationFee.$gte = Number(minFee);
       if (maxFee) query.consultationFee.$lte = Number(maxFee);
     }
 
-    if (minRating) {
-      query.rating = { $gte: Number(minRating) };
+    // 7. Rating Threshold
+    const ratingVal = minRating || rating;
+    if (ratingVal) {
+      query.rating = { $gte: Number(ratingVal) };
     }
 
-    if (minExperience) {
-      query.experience = { $gte: Number(minExperience) };
+    // 8. Experience Threshold
+    const expVal = minExperience || experience;
+    if (expVal) {
+      query.experience = { $gte: Number(expVal) };
     }
 
-    let sortOptions = { createdAt: -1 };
-    if (sort === 'fee-low') sortOptions = { consultationFee: 1 };
-    if (sort === 'fee-high') sortOptions = { consultationFee: -1 };
-    if (sort === 'rating') sortOptions = { rating: -1 };
-    if (sort === 'experience') sortOptions = { experience: -1 };
+    // 9. Availability Filter
+    if (availability && availability !== 'All') {
+      const avail = availability.toLowerCase();
+      if (avail === 'today' || avail === 'available today') {
+        query['availability.0'] = { $exists: true };
+      } else if (avail === 'tomorrow' || avail === 'available tomorrow') {
+        query['availability.0'] = { $exists: true };
+      }
+    }
+
+    // 10. Sorting
+    let sortOptions = { rating: -1, createdAt: -1 };
+    if (sort === 'fee-low' || sort === 'Consultation Fee: Low to High') sortOptions = { consultationFee: 1 };
+    if (sort === 'fee-high' || sort === 'Consultation Fee: High to Low') sortOptions = { consultationFee: -1 };
+    if (sort === 'rating' || sort === 'Rating: High to Low') sortOptions = { rating: -1 };
+    if (sort === 'experience' || sort === 'Experience: High to Low') sortOptions = { experience: -1 };
+    if (sort === 'earliest' || sort === 'Earliest Availability') sortOptions = { 'availability.0': -1, rating: -1 };
+    if (sort === 'relevance') sortOptions = { rating: -1, createdAt: -1 };
 
     const skip = (Number(page) - 1) * Number(limit);
     const total = await Doctor.countDocuments(query);
@@ -66,7 +134,7 @@ export const getDoctors = async (req, res) => {
   }
 };
 
-// @desc    Get single doctor profile by ID
+// @desc    Get single doctor profile by ID with booked slots for selected date
 // @route   GET /api/doctors/:id
 export const getDoctorById = async (req, res) => {
   try {
@@ -74,7 +142,25 @@ export const getDoctorById = async (req, res) => {
     if (!doctor) {
       return res.status(404).json({ success: false, message: 'Doctor not found' });
     }
-    return res.json({ success: true, doctor });
+
+    // Check if query contains date to return booked slots
+    let bookedSlots = [];
+    const { date } = req.query;
+    if (date) {
+      const activeAppointments = await Appointment.find({
+        doctor: doctor._id,
+        date: date.trim(),
+        status: { $in: ['CONFIRMED', 'PENDING', 'confirmed', 'pending'] },
+      }).select('timeSlot');
+
+      bookedSlots = activeAppointments.map((a) => a.timeSlot);
+    }
+
+    return res.json({
+      success: true,
+      doctor,
+      bookedSlots,
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

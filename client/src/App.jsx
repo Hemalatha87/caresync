@@ -17,6 +17,7 @@ import RegisterPage from './pages/RegisterPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import NotFoundPage from './pages/NotFoundPage';
+import AppointmentDetailPage from './pages/AppointmentDetailPage';
 
 import { ProtectedRoute, RoleBasedRoute } from './components/ProtectedRoute';
 
@@ -47,6 +48,7 @@ export default function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<DashboardRedirect />} />
                 <Route path="/appointments" element={<PatientDashboard />} />
+                <Route path="/appointments/:id" element={<AppointmentDetailPage />} />
                 
                 <Route element={<RoleBasedRoute allowedRoles={['patient']} />}>
                   <Route path="/dashboard/patient" element={<PatientDashboard />} />

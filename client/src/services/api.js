@@ -42,14 +42,15 @@ export const authAPI = {
 
 export const doctorAPI = {
   getAll: (params) => API.get('/doctors', { params }),
-  getById: (id) => API.get(`/doctors/${id}`),
+  getById: (id, params) => API.get(`/doctors/${id}`, { params }),
   updateProfile: (id, data) => API.put(`/doctors/${id}`, data),
 };
 
 export const appointmentAPI = {
   create: (data) => API.post('/appointments', data),
-  getAll: () => API.get('/appointments'),
-  updateStatus: (id, status) => API.put(`/appointments/${id}/status`, { status }),
+  getAll: (params) => API.get('/appointments', { params }),
+  getById: (id) => API.get(`/appointments/${id}`),
+  updateStatus: (id, status) => API.patch(`/appointments/${id}/status`, { status }),
   cancel: (id) => API.delete(`/appointments/${id}`),
 };
 

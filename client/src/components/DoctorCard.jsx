@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, MapPin, Award, CheckCircle2, ArrowRight, Stethoscope } from 'lucide-react';
+import { Star, MapPin, Award, CheckCircle2, ArrowRight, Video, Building2, Calendar, Clock, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// Reliable doctor fallback portrait
 const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400';
 
 export default function DoctorCard({ doctor }) {
@@ -20,6 +19,9 @@ export default function DoctorCard({ doctor }) {
       setImgSrc(DEFAULT_FALLBACK_IMAGE);
     }
   };
+
+  const consultationType = doctor.consultationType || 'Both';
+  const locationDisplay = doctor.location || `${doctor.clinic?.city || 'City Center'}, ${doctor.clinic?.name || 'Clinic'}`;
 
   return (
     <motion.div
@@ -50,7 +52,7 @@ export default function DoctorCard({ doctor }) {
         </div>
 
         {/* Doctor Title & Specialization */}
-        <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="flex items-center justify-between gap-2 mb-1.5">
           <span className="inline-block px-3 py-1 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-cyan-400 text-xs font-bold tracking-wide uppercase">
             {doctor.specialization}
           </span>
@@ -68,26 +70,51 @@ export default function DoctorCard({ doctor }) {
           {doctor.qualification}
         </p>
 
-        {/* Clinic & Location */}
-        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 mb-4 bg-slate-50 dark:bg-slate-850/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <span className="truncate">{doctor.clinic?.name || 'CareSync Clinic'}, {doctor.clinic?.city || 'City Center'}</span>
+        {/* Location / City */}
+        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 mb-2.5 bg-slate-50 dark:bg-slate-850/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+          <MapPin className="w-3.5 h-3.5 text-brand-600 dark:text-cyan-400 shrink-0" />
+          <span className="truncate font-medium">{locationDisplay}</span>
+        </div>
+
+        {/* Consultation Types & Availability Badges */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {(consultationType === 'Video Consultation' || consultationType === 'Both') && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-200 dark:border-purple-800/60">
+              <Video className="w-3 h-3" /> Video
+            </span>
+          )}
+          {(consultationType === 'In-Clinic' || consultationType === 'Both') && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-[10px] font-bold border border-blue-200 dark:border-blue-800/60">
+              <Building2 className="w-3 h-3" /> In-Clinic
+            </span>
+          )}
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800/60">
+            <Clock className="w-3 h-3" /> {doctor.nextAvailableSlot || 'Available Today'}
+          </span>
         </div>
       </div>
 
-      {/* Fee & Action */}
-      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+      {/* Fee & Action Buttons */}
+      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
         <div>
-          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Consultation Fee</span>
-          <span className="text-base font-extrabold text-slate-900 dark:text-white">${doctor.consultationFee}</span>
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Fee</span>
+          <span className="text-base font-extrabold text-slate-900 dark:text-white">₹{doctor.consultationFee}</span>
         </div>
 
-        <Link
-          to={`/doctors/${doctor._id}`}
-          className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-brand-600/20 hover:shadow-lg transition-all duration-200"
-        >
-          Book Visit <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/doctors/${doctor._id}`}
+            className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all"
+          >
+            View Profile
+          </Link>
+          <Link
+            to={`/doctors/${doctor._id}`}
+            className="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-500 text-white text-xs font-bold flex items-center gap-1 shadow-md shadow-brand-600/20 hover:shadow-lg transition-all duration-200"
+          >
+            Book Visit <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
       </div>
     </motion.div>
   );
