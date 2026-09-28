@@ -59,6 +59,10 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  languages: {
+    type: String,
+    default: 'English, Telugu, Hindi',
+  },
   rating: {
     type: Number,
     default: 4.8,
@@ -71,6 +75,10 @@ const doctorSchema = new mongoose.Schema({
     default: 0,
   },
   image: {
+    type: String,
+    default: '',
+  },
+  profileImage: {
     type: String,
     default: '',
   },
@@ -89,11 +97,29 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     default: 'Today, 04:30 PM',
   },
+  patientAgeGroups: {
+    type: [{
+      type: String,
+      enum: ['kids', 'adults', 'seniors'],
+    }],
+    default: ['adults', 'seniors'],
+    index: true,
+  },
   isVerified: {
     type: Boolean,
     default: true,
   }
 }, { timestamps: true });
+
+// Pre-save hook to ensure profileImage and image are always in sync
+doctorSchema.pre('save', function (next) {
+  if (this.profileImage && !this.image) {
+    this.image = this.profileImage;
+  } else if (this.image && !this.profileImage) {
+    this.profileImage = this.image;
+  }
+  next();
+});
 
 // Compound text index for search
 doctorSchema.index({

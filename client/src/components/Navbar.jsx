@@ -139,9 +139,17 @@ export default function Navbar() {
                   className="flex items-center gap-3 p-1.5 pl-3 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-all shadow-sm"
                 >
                   <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{user?.name}</span>
-                  <div className="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
-                    {user?.name?.charAt(0) || 'U'}
-                  </div>
+                  {user?.profileImage || user?.avatar ? (
+                    <img
+                      src={user.profileImage || user.avatar}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover border border-brand-500 shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                      {user?.name?.charAt(0) || 'U'}
+                    </div>
+                  )}
                 </button>
 
                 {/* Dropdown Menu */}
@@ -162,11 +170,20 @@ export default function Navbar() {
                       </div>
 
                       <Link
+                        to="/profile"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl transition-colors font-medium"
+                      >
+                        <User className="w-4 h-4 text-brand-600 dark:text-cyan-400" />
+                        My Profile
+                      </Link>
+
+                      <Link
                         to={getDashboardRoute()}
                         onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl transition-colors font-medium"
                       >
-                        <LayoutDashboard className="w-4 h-4 text-brand-600 dark:text-cyan-400" />
+                        <LayoutDashboard className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                         Dashboard
                       </Link>
 
@@ -175,7 +192,7 @@ export default function Navbar() {
                         onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl transition-colors font-medium"
                       >
-                        <Calendar className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                        <Calendar className="w-4 h-4 text-brand-600 dark:text-cyan-400" />
                         My Appointments
                       </Link>
 

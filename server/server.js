@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { connectDB } from './config/db.js';
 
 import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
@@ -35,7 +36,6 @@ const allowedOrigins = [
 // CORS Middleware
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, server-to-server)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
       return callback(null, true);
@@ -48,7 +48,12 @@ app.use(cors({
 }));
 
 app.options('*', cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve uploaded profile images
+const uploadsPath = path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadsPath));
 
 // Real-time Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -79,6 +84,7 @@ app.use('/api', (req, res, next) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/reviews', reviewRoutes);
@@ -89,7 +95,7 @@ const clientDistPath = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDistPath));
 
 app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
+  if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
   res.sendFile(path.join(clientDistPath, 'index.html'), (err) => {
     if (err) next();
   });
@@ -102,7 +108,7 @@ app.use('/api/*', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('[CareSync Server Error]', err.stack);
+  console.error('[CareSync Server Error]', err.stack || err.message);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal Server Error',
@@ -121,6 +127,28 @@ const startServer = async () => {
       if (doctorCount === 0) {
         console.log('[CareSync Auto-Seed] Database empty, seeding initial records...');
         await seedCareSyncData();
+      } else {
+        // Safe backward-compatibility backfill: ensure existing doctors have patientAgeGroups
+        const docsWithoutAgeGroups = await Doctor.find({
+          $or: [
+            { patientAgeGroups: { $exists: false } },
+            { patientAgeGroups: { $size: 0 } },
+          ],
+        });
+        if (docsWithoutAgeGroups.length > 0) {
+          console.log(`[CareSync Migration] Updating ${docsWithoutAgeGroups.length} doctors with patientAgeGroups...`);
+          for (const doc of docsWithoutAgeGroups) {
+            if (doc.specialization === 'Pediatrician') {
+              doc.patientAgeGroups = ['kids'];
+            } else if (['General Physician', 'Dentist', 'ENT Specialist', 'Ophthalmologist'].includes(doc.specialization)) {
+              doc.patientAgeGroups = ['kids', 'adults', 'seniors'];
+            } else {
+              doc.patientAgeGroups = ['adults', 'seniors'];
+            }
+            await doc.save();
+          }
+          console.log('[CareSync Migration] Doctors patientAgeGroups updated successfully.');
+        }
       }
     } catch (seedErr) {
       console.warn('[CareSync Auto-Seed Warning]', seedErr.message);

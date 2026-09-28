@@ -119,21 +119,45 @@ export default function DoctorDashboard() {
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-400 font-bold text-xs uppercase">
-                Doctor Practice Portal
-              </span>
+          <div className="flex items-center gap-4">
+            {user?.profileImage || user?.avatar ? (
+              <img
+                src={user?.profileImage || user?.avatar}
+                alt={user?.name}
+                className="w-16 h-16 rounded-2xl object-cover border-2 border-brand-500 dark:border-cyan-500 shadow-md flex-shrink-0"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=200";
+                }}
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-2xl bg-cyan-600 text-white font-extrabold flex items-center justify-center text-xl shadow-md flex-shrink-0">
+                {user?.name?.charAt(0) || 'D'}
+              </div>
+            )}
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-400 font-bold text-xs uppercase">
+                  Doctor Practice Portal
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+                Welcome, {user?.name}
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Manage incoming patient bookings, schedule appointments, and update clinical consultation status.
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
-              Welcome, {user?.name}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Manage incoming patient bookings, schedule appointments, and update clinical consultation status.
-            </p>
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/profile')}
+              className="px-4 py-2.5 rounded-xl border border-brand-200 dark:border-cyan-800 bg-brand-50 dark:bg-cyan-950/50 text-brand-700 dark:text-cyan-300 hover:bg-brand-100 font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Doctor Profile</span>
+            </button>
             <button
               onClick={fetchAppointments}
               className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-cyan-400 font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5"

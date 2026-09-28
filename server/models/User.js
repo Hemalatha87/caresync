@@ -33,14 +33,43 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  profileImage: {
+    type: String,
+    default: '',
+  },
   gender: {
     type: String,
     enum: ['male', 'female', 'other', 'unspecified'],
     default: 'unspecified',
   },
+  dob: {
+    type: String,
+    default: '',
+  },
+  location: {
+    type: String,
+    default: '',
+  },
   address: {
     type: String,
     default: '',
+  },
+  bloodGroup: {
+    type: String,
+    default: '',
+  },
+  emergencyContact: {
+    type: String,
+    default: '',
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'suspended'],
+    default: 'active',
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
   }
 }, { timestamps: true });
 
@@ -49,8 +78,14 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Encrypt password before saving
+// Encrypt password before saving & keep avatar / profileImage in sync
 userSchema.pre('save', async function (next) {
+  if (this.profileImage && !this.avatar) {
+    this.avatar = this.profileImage;
+  } else if (this.avatar && !this.profileImage) {
+    this.profileImage = this.avatar;
+  }
+
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

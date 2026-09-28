@@ -23,7 +23,8 @@ export default function RegisterPage() {
   // Doctor optional fields
   const [specialization, setSpecialization] = useState('General Physician');
   const [qualification, setQualification] = useState('MBBS, MD');
-  const [consultationFee, setConsultationFee] = useState(100);
+  const [consultationFee, setConsultationFee] = useState(500);
+  const [patientAgeGroups, setPatientAgeGroups] = useState(['adults', 'seniors']);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -68,7 +69,12 @@ export default function RegisterPage() {
         phone,
         password,
         role,
-        ...(role === 'doctor' && { specialization, qualification, consultationFee }),
+        ...(role === 'doctor' && {
+          specialization,
+          qualification,
+          consultationFee: Number(consultationFee),
+          patientAgeGroups: patientAgeGroups.length > 0 ? patientAgeGroups : ['adults', 'seniors'],
+        }),
       };
 
       const res = await register(payload);
@@ -277,7 +283,13 @@ export default function RegisterPage() {
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Specialization</label>
                   <select
                     value={specialization}
-                    onChange={(e) => setSpecialization(e.target.value)}
+                    onChange={(e) => {
+                      const spec = e.target.value;
+                      setSpecialization(spec);
+                      if (spec === 'Pediatrician') {
+                        setPatientAgeGroups(['kids']);
+                      }
+                    }}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
                   >
                     <option value="General Physician">General Physician</option>
@@ -288,17 +300,57 @@ export default function RegisterPage() {
                     <option value="Orthopedic">Orthopedic</option>
                     <option value="Gynecologist">Gynecologist</option>
                     <option value="Dentist">Dentist</option>
+                    <option value="ENT Specialist">ENT Specialist</option>
+                    <option value="Ophthalmologist">Ophthalmologist</option>
+                    <option value="Psychiatrist">Psychiatrist</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Consultation Fee ($)</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Consultation Fee (₹)</label>
                   <input
                     type="number"
+                    min="0"
                     value={consultationFee}
                     onChange={(e) => setConsultationFee(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Who do you provide care for?
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { id: 'kids', label: 'Kids (0–17)', emoji: '👶' },
+                      { id: 'adults', label: 'Adults (18–59)', emoji: '🧑' },
+                      { id: 'seniors', label: 'Seniors (60+)', emoji: '👴' },
+                    ].map((ag) => {
+                      const isChecked = patientAgeGroups.includes(ag.id);
+                      return (
+                        <button
+                          type="button"
+                          key={ag.id}
+                          onClick={() => {
+                            if (isChecked) {
+                              setPatientAgeGroups(patientAgeGroups.filter((g) => g !== ag.id));
+                            } else {
+                              setPatientAgeGroups([...patientAgeGroups, ag.id]);
+                            }
+                          }}
+                          className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all flex items-center justify-center gap-1 ${
+                            isChecked
+                              ? 'bg-brand-600 dark:bg-cyan-600 text-white border-brand-600 dark:border-cyan-600 shadow-xs'
+                              : 'bg-white dark:bg-slate-850 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <span>{ag.emoji}</span>
+                          <span>{ag.id === 'kids' ? 'Kids' : ag.id === 'adults' ? 'Adults' : 'Seniors'}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}

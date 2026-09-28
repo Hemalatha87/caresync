@@ -59,6 +59,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('caresync_user');
   };
 
+  const updateUser = (updatedUserData) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...updatedUserData };
+      localStorage.setItem('caresync_user', JSON.stringify(merged));
+      return merged;
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -71,6 +79,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         setUser,
+        updateUser,
       }}
     >
       {children}

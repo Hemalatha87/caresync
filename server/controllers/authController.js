@@ -31,21 +31,30 @@ export const register = async (req, res) => {
       role: role || 'patient',
     });
 
-    // If registered as doctor, create a base Doctor document
+    // If registered as doctor, create a base Doctor document with full profile details
     if (user.role === 'doctor') {
+      const docLocation = req.body.location || (req.body.city ? `${req.body.city}, Andhra Pradesh` : 'Guntur, Andhra Pradesh');
+      const docCity = req.body.city || (req.body.location ? req.body.location.split(',')[0].trim() : 'Guntur');
+      const initialImg = req.body.profileImage || req.body.avatar || user.avatar || '';
+
       await Doctor.create({
         user: user._id,
         name: user.name,
         specialization: req.body.specialization || 'General Physician',
         qualification: req.body.qualification || 'MBBS',
-        experience: req.body.experience || 3,
-        consultationFee: req.body.consultationFee || 500,
+        experience: Number(req.body.experience) || 3,
+        consultationFee: Number(req.body.consultationFee) || 500,
+        gender: req.body.gender || (user.gender === 'male' ? 'Male' : user.gender === 'female' ? 'Female' : 'Female'),
+        location: docLocation,
         clinic: {
-          name: req.body.clinicName || 'CareSync Health Clinic',
-          address: req.body.clinicAddress || '123 Medical Hub Ave',
-          city: req.body.city || 'Metro Health City',
+          name: req.body.clinicName || `${user.name} Health Clinic`,
+          address: req.body.clinicAddress || 'Main Road',
+          city: docCity,
         },
-        bio: 'Dedicated healthcare professional committing to excellence in patient care.',
+        profileImage: initialImg,
+        image: initialImg,
+        bio: req.body.bio || 'Dedicated healthcare professional committing to excellence in patient care.',
+        patientAgeGroups: req.body.patientAgeGroups || (req.body.specialization === 'Pediatrician' ? ['kids'] : ['adults', 'seniors']),
         availability: [
           { day: 'Monday', slots: ['09:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'] },
           { day: 'Wednesday', slots: ['09:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'] },
@@ -61,11 +70,14 @@ export const register = async (req, res) => {
       token,
       user: {
         id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         phone: user.phone,
         avatar: user.avatar,
+        profileImage: user.profileImage || user.avatar,
+        location: user.location,
       },
     });
   } catch (error) {
@@ -100,11 +112,14 @@ export const login = async (req, res) => {
       token,
       user: {
         id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         phone: user.phone,
         avatar: user.avatar,
+        profileImage: user.profileImage || user.avatar,
+        location: user.location,
       },
     });
   } catch (error) {
@@ -126,13 +141,19 @@ export const getMe = async (req, res) => {
       success: true,
       user: {
         id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         phone: user.phone,
         avatar: user.avatar,
+        profileImage: user.profileImage || user.avatar,
         gender: user.gender,
+        dob: user.dob,
+        location: user.location,
         address: user.address,
+        bloodGroup: user.bloodGroup,
+        emergencyContact: user.emergencyContact,
         doctorProfile: doctorProfile,
       },
     });

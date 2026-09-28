@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import DoctorCard from '../components/DoctorCard';
 import { DoctorGridSkeleton } from '../components/LoadingSkeleton';
@@ -26,6 +26,290 @@ const SPECIALIZATIONS = [
   'Psychiatrist'
 ];
 
+const POPULAR_LOCATIONS = [
+  'Guntur',
+  'Vijayawada',
+  'Tenali',
+  'Hyderabad',
+  'Warangal',
+  'Visakhapatnam',
+  'Tirupati',
+  'Amaravati'
+];
+
+const AGE_GROUP_OPTIONS = [
+  { value: 'All', label: 'All Age Groups', emoji: '👥' },
+  { value: 'kids', label: 'Kids Care (0–17)', emoji: '👶' },
+  { value: 'adults', label: 'Adult Care (18–59)', emoji: '🧑' },
+  { value: 'seniors', label: 'Senior Care (60+)', emoji: '👴' },
+];
+
+// Standalone FilterForm declared OUTSIDE to ensure stable component identity and prevent unmounting
+function FilterForm({
+  idPrefix = 'desktop',
+  search,
+  setSearch,
+  ageGroup,
+  setAgeGroup,
+  specialization,
+  setSpecialization,
+  location,
+  setLocation,
+  minFee,
+  setMinFee,
+  maxFee,
+  setMaxFee,
+  experience,
+  setExperience,
+  rating,
+  setRating,
+  gender,
+  setGender,
+  availability,
+  setAvailability,
+  consultationType,
+  setConsultationType,
+  date,
+  setDate,
+  onApply,
+}) {
+  return (
+    <form onSubmit={onApply} className="space-y-4 text-xs font-semibold text-slate-700 dark:text-slate-300">
+      {/* 1. Doctor Name / Keyword Search */}
+      <div>
+        <label htmlFor={`${idPrefix}-doctor-search-input`} className="block mb-1.5 text-slate-600 dark:text-slate-400">
+          Doctor Name or Keyword
+        </label>
+        <div className="relative">
+          <input
+            id={`${idPrefix}-doctor-search-input`}
+            type="text"
+            placeholder="e.g. Dr. Elena, Dermatologist..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 focus:ring-1 focus:ring-brand-600/30 dark:focus:ring-cyan-400/30 transition-all"
+          />
+          <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-2.5 pointer-events-none" />
+        </div>
+      </div>
+
+      {/* 2. Patient Age Group Discovery Filter */}
+      <div>
+        <label className="block mb-1.5 text-slate-600 dark:text-slate-400 flex items-center justify-between">
+          <span>Patient Age Group</span>
+          <span className="text-[10px] text-brand-600 dark:text-cyan-400 font-bold uppercase">Discovery</span>
+        </label>
+        <select
+          value={ageGroup}
+          onChange={(e) => setAgeGroup(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+        >
+          {AGE_GROUP_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value} className="dark:bg-slate-900 dark:text-white">
+              {opt.emoji} {opt.label}
+            </option>
+          ))}
+        </select>
+
+        {/* Quick Age Group Selection Chips */}
+        <div className="grid grid-cols-3 gap-1.5 mt-2">
+          {AGE_GROUP_OPTIONS.filter((o) => o.value !== 'All').map((opt) => {
+            const isSelected = ageGroup.toLowerCase() === opt.value.toLowerCase();
+            return (
+              <button
+                type="button"
+                key={opt.value}
+                onClick={() => setAgeGroup(isSelected ? 'All' : opt.value)}
+                className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all flex items-center justify-center gap-1 ${
+                  isSelected
+                    ? 'bg-brand-600 dark:bg-cyan-600 text-white border-brand-600 dark:border-cyan-600 shadow-xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                }`}
+              >
+                <span>{opt.emoji}</span>
+                <span>{opt.value === 'kids' ? 'Kids' : opt.value === 'adults' ? 'Adults' : 'Seniors'}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. Specialization */}
+      <div>
+        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Specialization</label>
+        <select
+          value={specialization}
+          onChange={(e) => setSpecialization(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+        >
+          {SPECIALIZATIONS.map((spec) => (
+            <option key={spec} value={spec} className="dark:bg-slate-900 dark:text-white">
+              {spec}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* 4. Location / City */}
+      <div>
+        <label htmlFor={`${idPrefix}-doctor-location-input`} className="block mb-1.5 text-slate-600 dark:text-slate-400">
+          Location / City (AP & Telangana)
+        </label>
+        <div className="relative">
+          <input
+            id={`${idPrefix}-doctor-location-input`}
+            type="text"
+            placeholder="e.g. Guntur, Vijayawada, Hyderabad..."
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 focus:ring-1 focus:ring-brand-600/30 dark:focus:ring-cyan-400/30 transition-all"
+          />
+          <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-2.5 pointer-events-none" />
+        </div>
+
+        {/* Quick location suggestion pills */}
+        <div className="flex flex-wrap gap-1 mt-2">
+          {POPULAR_LOCATIONS.map((loc) => (
+            <button
+              type="button"
+              key={loc}
+              onClick={() => setLocation(location.toLowerCase() === loc.toLowerCase() ? '' : loc)}
+              className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors ${
+                location.toLowerCase() === loc.toLowerCase()
+                  ? 'bg-brand-600 text-white dark:bg-cyan-500 dark:text-slate-900'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {loc}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 4. Consultation Fee Range */}
+      <div>
+        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Consultation Fee (₹)</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            placeholder="Min (₹)"
+            value={minFee}
+            onChange={(e) => setMinFee(e.target.value)}
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+          />
+          <input
+            type="number"
+            placeholder="Max (₹)"
+            value={maxFee}
+            onChange={(e) => setMaxFee(e.target.value)}
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+          />
+        </div>
+      </div>
+
+      {/* 5. Consultation Type */}
+      <div>
+        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Consultation Format</label>
+        <select
+          value={consultationType}
+          onChange={(e) => setConsultationType(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+        >
+          <option value="All" className="dark:bg-slate-900 dark:text-white">All Formats</option>
+          <option value="In-Clinic" className="dark:bg-slate-900 dark:text-white">In-Clinic Visit</option>
+          <option value="Video Consultation" className="dark:bg-slate-900 dark:text-white">HD Video Consultation</option>
+          <option value="Both" className="dark:bg-slate-900 dark:text-white">Both In-Clinic & Video</option>
+        </select>
+      </div>
+
+      {/* 6. Availability */}
+      <div>
+        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Availability</label>
+        <select
+          value={availability}
+          onChange={(e) => setAvailability(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+        >
+          <option value="All" className="dark:bg-slate-900 dark:text-white">Anytime</option>
+          <option value="Available Today" className="dark:bg-slate-900 dark:text-white">Available Today</option>
+          <option value="Available Tomorrow" className="dark:bg-slate-900 dark:text-white">Available Tomorrow</option>
+        </select>
+      </div>
+
+      {/* 7. Preferred Date */}
+      <div>
+        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Specific Date</label>
+        <input
+          type="date"
+          value={date}
+          min={new Date().toISOString().split('T')[0]}
+          onChange={(e) => setDate(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+        />
+      </div>
+
+      {/* 8. Minimum Experience */}
+      <div>
+        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Experience Level</label>
+        <select
+          value={experience}
+          onChange={(e) => setExperience(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+        >
+          <option value="" className="dark:bg-slate-900 dark:text-white">Any Experience</option>
+          <option value="5" className="dark:bg-slate-900 dark:text-white">5+ Years</option>
+          <option value="10" className="dark:bg-slate-900 dark:text-white">10+ Years</option>
+          <option value="15" className="dark:bg-slate-900 dark:text-white">15+ Years</option>
+        </select>
+      </div>
+
+      {/* 9. Minimum Rating */}
+      <div>
+        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Minimum Rating</label>
+        <select
+          value={rating}
+          onChange={(e) => setRating(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
+        >
+          <option value="" className="dark:bg-slate-900 dark:text-white">Any Rating</option>
+          <option value="4.5" className="dark:bg-slate-900 dark:text-white">★ 4.5 & above</option>
+          <option value="4.8" className="dark:bg-slate-900 dark:text-white">★ 4.8 & above</option>
+        </select>
+      </div>
+
+      {/* 10. Gender */}
+      <div>
+        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Doctor Gender</label>
+        <div className="grid grid-cols-3 gap-1.5">
+          {['All', 'Female', 'Male'].map((g) => (
+            <button
+              type="button"
+              key={g}
+              onClick={() => setGender(g)}
+              className={`py-2 rounded-xl text-xs font-bold border transition-colors ${
+                gender === g
+                  ? 'bg-brand-600 dark:bg-cyan-600 text-white border-brand-600 dark:border-cyan-600 shadow-xs'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+              }`}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Search Button */}
+      <button
+        type="submit"
+        className="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-600 to-cyan-600 hover:from-brand-700 hover:to-cyan-700 text-white font-bold text-xs shadow-md shadow-brand-600/20 hover:shadow-lg transition-all flex items-center justify-center gap-2"
+      >
+        <Search className="w-4 h-4" />
+        <span>Apply Filters</span>
+      </button>
+    </form>
+  );
+}
+
 export default function DoctorsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [doctors, setDoctors] = useState([]);
@@ -35,8 +319,9 @@ export default function DoctorsPage() {
   const [page, setPage] = useState(1);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Search & Filter State
+  // Search & Filter State - initialized from searchParams
   const [search, setSearch] = useState(searchParams.get('search') || searchParams.get('name') || '');
+  const [ageGroup, setAgeGroup] = useState(searchParams.get('ageGroup') || 'All');
   const [specialization, setSpecialization] = useState(searchParams.get('specialization') || 'All');
   const [location, setLocation] = useState(searchParams.get('location') || searchParams.get('city') || '');
   const [minFee, setMinFee] = useState(searchParams.get('minFee') || '');
@@ -49,18 +334,51 @@ export default function DoctorsPage() {
   const [date, setDate] = useState(searchParams.get('date') || '');
   const [sort, setSort] = useState(searchParams.get('sort') || 'rating');
 
-  const fetchDoctors = useCallback(async (customPage = page) => {
+  // Debounced search term for continuous live typing without cursor jump or remounting
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [debouncedLocation, setDebouncedLocation] = useState(location);
+
+  // Sync external search params changes (e.g. from Home page links)
+  useEffect(() => {
+    const urlAge = searchParams.get('ageGroup');
+    if (urlAge && urlAge !== ageGroup) {
+      setAgeGroup(urlAge);
+    }
+    const urlSpec = searchParams.get('specialization');
+    if (urlSpec && urlSpec !== specialization) {
+      setSpecialization(urlSpec);
+    }
+  }, [searchParams]);
+
+  // Debounce search and location inputs by 350ms
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 350);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedLocation(location);
+    }, 350);
+    return () => clearTimeout(handler);
+  }, [location]);
+
+  // Fetch doctors from backend with real MongoDB query params
+  const fetchDoctors = useCallback(async (targetPage = page) => {
     setLoading(true);
     try {
       const params = {
-        page: customPage,
+        page: targetPage,
         limit: 9,
         sort,
       };
 
-      if (search.trim()) params.search = search.trim();
+      if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
+      if (ageGroup && ageGroup !== 'All') params.ageGroup = ageGroup;
       if (specialization && specialization !== 'All') params.specialization = specialization;
-      if (location.trim()) params.location = location.trim();
+      if (debouncedLocation.trim()) params.location = debouncedLocation.trim();
       if (minFee) params.minFee = minFee;
       if (maxFee) params.maxFee = maxFee;
       if (experience) params.experience = experience;
@@ -82,18 +400,15 @@ export default function DoctorsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, specialization, location, minFee, maxFee, experience, rating, gender, availability, consultationType, date, sort, page]);
+  }, [debouncedSearch, ageGroup, specialization, debouncedLocation, minFee, maxFee, experience, rating, gender, availability, consultationType, date, sort, page]);
 
+  // Sync params to URL non-destructively
   useEffect(() => {
-    fetchDoctors(page);
-  }, [sort, page]);
-
-  // Sync URL search params
-  const syncParams = () => {
     const p = {};
-    if (search.trim()) p.search = search.trim();
+    if (debouncedSearch.trim()) p.search = debouncedSearch.trim();
+    if (ageGroup && ageGroup !== 'All') p.ageGroup = ageGroup;
     if (specialization && specialization !== 'All') p.specialization = specialization;
-    if (location.trim()) p.location = location.trim();
+    if (debouncedLocation.trim()) p.location = debouncedLocation.trim();
     if (minFee) p.minFee = minFee;
     if (maxFee) p.maxFee = maxFee;
     if (experience) p.experience = experience;
@@ -103,21 +418,29 @@ export default function DoctorsPage() {
     if (consultationType && consultationType !== 'All') p.consultationType = consultationType;
     if (date) p.date = date;
     if (sort) p.sort = sort;
-    setSearchParams(p);
-  };
+    setSearchParams(p, { replace: true });
+  }, [debouncedSearch, ageGroup, specialization, debouncedLocation, minFee, maxFee, experience, rating, gender, availability, consultationType, date, sort, setSearchParams]);
+
+  // Fetch when filters or page change
+  useEffect(() => {
+    fetchDoctors(page);
+  }, [fetchDoctors, page, sort]);
 
   const handleApplyFilter = (e) => {
     if (e) e.preventDefault();
     setPage(1);
-    syncParams();
-    fetchDoctors(1);
+    setDebouncedSearch(search);
+    setDebouncedLocation(location);
     setMobileFilterOpen(false);
   };
 
   const handleResetFilters = () => {
     setSearch('');
+    setDebouncedSearch('');
+    setAgeGroup('All');
     setSpecialization('All');
     setLocation('');
+    setDebouncedLocation('');
     setMinFee('');
     setMaxFee('');
     setExperience('');
@@ -128,235 +451,57 @@ export default function DoctorsPage() {
     setDate('');
     setSort('rating');
     setPage(1);
-    setSearchParams({});
-    // Trigger fresh fetch
-    setTimeout(() => {
-      doctorAPI.getAll({ page: 1, limit: 9, sort: 'rating' }).then((res) => {
-        if (res.data.success) {
-          setDoctors(res.data.doctors || []);
-          setTotal(res.data.total || 0);
-          setPages(res.data.pages || 1);
-        }
-      });
-    }, 50);
+    setSearchParams({}, { replace: true });
   };
 
   // Active filter chips list
-  const activeChips = [];
-  if (specialization && specialization !== 'All') {
-    activeChips.push({ id: 'specialization', label: specialization, remove: () => setSpecialization('All') });
-  }
-  if (location.trim()) {
-    activeChips.push({ id: 'location', label: location, remove: () => setLocation('') });
-  }
-  if (minFee || maxFee) {
-    activeChips.push({
-      id: 'fee',
-      label: minFee && maxFee ? `₹${minFee}–₹${maxFee}` : minFee ? `₹${minFee}+` : `Up to ₹${maxFee}`,
-      remove: () => { setMinFee(''); setMaxFee(''); }
-    });
-  }
-  if (experience) {
-    activeChips.push({ id: 'experience', label: `${experience}+ Yrs Exp`, remove: () => setExperience('') });
-  }
-  if (rating) {
-    activeChips.push({ id: 'rating', label: `${rating}+ Rating`, remove: () => setRating('') });
-  }
-  if (gender && gender !== 'All') {
-    activeChips.push({ id: 'gender', label: `${gender}`, remove: () => setGender('All') });
-  }
-  if (availability && availability !== 'All') {
-    activeChips.push({ id: 'availability', label: availability, remove: () => setAvailability('All') });
-  }
-  if (consultationType && consultationType !== 'All') {
-    activeChips.push({ id: 'consultationType', label: consultationType, remove: () => setConsultationType('All') });
-  }
-  if (date) {
-    activeChips.push({ id: 'date', label: date, remove: () => setDate('') });
-  }
+  const activeChips = useMemo(() => {
+    const chips = [];
+    if (search.trim()) {
+      chips.push({ id: 'search', label: `Keyword: "${search}"`, remove: () => { setSearch(''); setDebouncedSearch(''); } });
+    }
+    if (ageGroup && ageGroup !== 'All') {
+      const ageLabel = ageGroup === 'kids' ? 'Kids (0–17)' : ageGroup === 'adults' ? 'Adults (18–59)' : 'Seniors (60+)';
+      chips.push({ id: 'ageGroup', label: `Age Group: ${ageLabel}`, remove: () => setAgeGroup('All') });
+    }
+    if (specialization && specialization !== 'All') {
+      chips.push({ id: 'specialization', label: specialization, remove: () => setSpecialization('All') });
+    }
+    if (location.trim()) {
+      chips.push({ id: 'location', label: location, remove: () => { setLocation(''); setDebouncedLocation(''); } });
+    }
+    if (minFee || maxFee) {
+      chips.push({
+        id: 'fee',
+        label: minFee && maxFee ? `₹${minFee}–₹${maxFee}` : minFee ? `₹${minFee}+` : `Up to ₹${maxFee}`,
+        remove: () => { setMinFee(''); setMaxFee(''); }
+      });
+    }
+    if (experience) {
+      chips.push({ id: 'experience', label: `${experience}+ Yrs Exp`, remove: () => setExperience('') });
+    }
+    if (rating) {
+      chips.push({ id: 'rating', label: `${rating}+ Rating`, remove: () => setRating('') });
+    }
+    if (gender && gender !== 'All') {
+      chips.push({ id: 'gender', label: `Gender: ${gender}`, remove: () => setGender('All') });
+    }
+    if (availability && availability !== 'All') {
+      chips.push({ id: 'availability', label: availability, remove: () => setAvailability('All') });
+    }
+    if (consultationType && consultationType !== 'All') {
+      chips.push({ id: 'consultationType', label: consultationType, remove: () => setConsultationType('All') });
+    }
+    if (date) {
+      chips.push({ id: 'date', label: date, remove: () => setDate('') });
+    }
+    return chips;
+  }, [search, ageGroup, specialization, location, minFee, maxFee, experience, rating, gender, availability, consultationType, date]);
 
-  // Trigger search whenever a chip is removed
   const handleRemoveChip = (chip) => {
     chip.remove();
-    setTimeout(() => {
-      handleApplyFilter();
-    }, 20);
+    setPage(1);
   };
-
-  const FilterFormComponent = () => (
-    <form onSubmit={handleApplyFilter} className="space-y-4 text-xs font-semibold text-slate-700 dark:text-slate-300">
-      {/* 1. Doctor Name Search */}
-      <div>
-        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Doctor Name or Keyword</label>
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="e.g. Dr. Elena, Dermatologist..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
-          />
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-        </div>
-      </div>
-
-      {/* 2. Specialization */}
-      <div>
-        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Specialization</label>
-        <select
-          value={specialization}
-          onChange={(e) => setSpecialization(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
-        >
-          {SPECIALIZATIONS.map((spec) => (
-            <option key={spec} value={spec} className="dark:bg-slate-900 dark:text-white">{spec}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* 3. Location */}
-      <div>
-        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Location / City</label>
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="e.g. Tenali, Hyderabad, Guntur..."
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
-          />
-          <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-        </div>
-      </div>
-
-      {/* 4. Consultation Fee Range */}
-      <div>
-        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Consultation Fee (₹)</label>
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number"
-            placeholder="Min (₹)"
-            value={minFee}
-            onChange={(e) => setMinFee(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
-          />
-          <input
-            type="number"
-            placeholder="Max (₹)"
-            value={maxFee}
-            onChange={(e) => setMaxFee(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
-          />
-        </div>
-      </div>
-
-      {/* 5. Consultation Type */}
-      <div>
-        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Consultation Type</label>
-        <select
-          value={consultationType}
-          onChange={(e) => setConsultationType(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
-        >
-          <option value="All" className="dark:bg-slate-900 dark:text-white">All Formats</option>
-          <option value="In-Clinic" className="dark:bg-slate-900 dark:text-white">In-Clinic Consultation</option>
-          <option value="Video Consultation" className="dark:bg-slate-900 dark:text-white">Video Consultation</option>
-          <option value="Both" className="dark:bg-slate-900 dark:text-white">In-Clinic & Video (Both)</option>
-        </select>
-      </div>
-
-      {/* 6. Availability */}
-      <div>
-        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Availability</label>
-        <select
-          value={availability}
-          onChange={(e) => setAvailability(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
-        >
-          <option value="All" className="dark:bg-slate-900 dark:text-white">Anytime</option>
-          <option value="Available Today" className="dark:bg-slate-900 dark:text-white">Available Today</option>
-          <option value="Available Tomorrow" className="dark:bg-slate-900 dark:text-white">Available Tomorrow</option>
-          <option value="Available This Week" className="dark:bg-slate-900 dark:text-white">Available This Week</option>
-        </select>
-      </div>
-
-      {/* 7. Specific Date */}
-      <div>
-        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Preferred Date</label>
-        <div className="relative">
-          <input
-            type="date"
-            value={date}
-            min={new Date().toISOString().split('T')[0]}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
-          />
-        </div>
-      </div>
-
-      {/* 8. Minimum Experience */}
-      <div>
-        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Experience</label>
-        <select
-          value={experience}
-          onChange={(e) => setExperience(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
-        >
-          <option value="" className="dark:bg-slate-900 dark:text-white">Any Experience</option>
-          <option value="3" className="dark:bg-slate-900 dark:text-white">3+ Years</option>
-          <option value="5" className="dark:bg-slate-900 dark:text-white">5+ Years</option>
-          <option value="10" className="dark:bg-slate-900 dark:text-white">10+ Years</option>
-          <option value="15" className="dark:bg-slate-900 dark:text-white">15+ Years</option>
-        </select>
-      </div>
-
-      {/* 9. Minimum Rating */}
-      <div>
-        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Doctor Rating</label>
-        <select
-          value={rating}
-          onChange={(e) => setRating(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 cursor-pointer"
-        >
-          <option value="" className="dark:bg-slate-900 dark:text-white">Any Rating</option>
-          <option value="4.8" className="dark:bg-slate-900 dark:text-white">4.8+ Stars (Top Rated)</option>
-          <option value="4.5" className="dark:bg-slate-900 dark:text-white">4.5+ Stars</option>
-          <option value="4.0" className="dark:bg-slate-900 dark:text-white">4.0+ Stars</option>
-          <option value="3.5" className="dark:bg-slate-900 dark:text-white">3.5+ Stars</option>
-        </select>
-      </div>
-
-      {/* 10. Doctor Gender */}
-      <div>
-        <label className="block mb-1.5 text-slate-600 dark:text-slate-400">Doctor Gender</label>
-        <div className="grid grid-cols-3 gap-1.5">
-          {['All', 'Male', 'Female'].map((g) => (
-            <button
-              type="button"
-              key={g}
-              onClick={() => setGender(g)}
-              className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${
-                gender === g
-                  ? 'bg-brand-600 dark:bg-cyan-600 text-white border-brand-600 dark:border-cyan-600 shadow-xs'
-                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300'
-              }`}
-            >
-              {g}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Search Button */}
-      <button
-        type="submit"
-        className="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-600 to-cyan-600 hover:from-brand-700 hover:to-cyan-700 text-white font-bold text-xs shadow-md shadow-brand-600/20 hover:shadow-lg transition-all flex items-center justify-center gap-2"
-      >
-        <Search className="w-4 h-4" />
-        <span>Search Doctors</span>
-      </button>
-    </form>
-  );
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#080E1E] pt-28 pb-20 transition-colors duration-300">
@@ -367,10 +512,10 @@ export default function DoctorsPage() {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-brand-600 dark:text-cyan-400 uppercase tracking-wider mb-1">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Advanced Medical Directory</span>
+              <span>Andhra Pradesh & Telangana Medical Directory</span>
             </div>
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Find & Book Top Doctors</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">Discover verified healthcare specialists, compare fees, and book slots instantly.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">Discover verified healthcare specialists in Guntur, Vijayawada, Hyderabad, Tenali and more.</p>
           </div>
 
           {/* Mobile Filter Toggle Button */}
@@ -387,7 +532,7 @@ export default function DoctorsPage() {
           
           {/* Left Sidebar Filter Panel (Desktop) */}
           <div className="hidden lg:block lg:col-span-3">
-            <div className="bg-white dark:bg-[#111B33] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm sticky top-28 max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar">
+            <div className="bg-white dark:bg-[#111B33] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs sticky top-28 max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar">
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
                 <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
                   <SlidersHorizontal className="w-4 h-4 text-brand-600 dark:text-cyan-400" />
@@ -404,7 +549,34 @@ export default function DoctorsPage() {
                 )}
               </div>
 
-              <FilterFormComponent />
+              <FilterForm
+                idPrefix="desktop"
+                search={search}
+                setSearch={setSearch}
+                ageGroup={ageGroup}
+                setAgeGroup={setAgeGroup}
+                specialization={specialization}
+                setSpecialization={setSpecialization}
+                location={location}
+                setLocation={setLocation}
+                minFee={minFee}
+                setMinFee={setMinFee}
+                maxFee={maxFee}
+                setMaxFee={setMaxFee}
+                experience={experience}
+                setExperience={setExperience}
+                rating={rating}
+                setRating={setRating}
+                gender={gender}
+                setGender={setGender}
+                availability={availability}
+                setAvailability={setAvailability}
+                consultationType={consultationType}
+                setConsultationType={setConsultationType}
+                date={date}
+                setDate={setDate}
+                onApply={handleApplyFilter}
+              />
             </div>
           </div>
 
@@ -438,7 +610,34 @@ export default function DoctorsPage() {
                       <X className="w-5 h-5" />
                     </button>
                   </div>
-                  <FilterFormComponent />
+                  <FilterForm
+                    idPrefix="mobile"
+                    search={search}
+                    setSearch={setSearch}
+                    ageGroup={ageGroup}
+                    setAgeGroup={setAgeGroup}
+                    specialization={specialization}
+                    setSpecialization={setSpecialization}
+                    location={location}
+                    setLocation={setLocation}
+                    minFee={minFee}
+                    setMinFee={setMinFee}
+                    maxFee={maxFee}
+                    setMaxFee={setMaxFee}
+                    experience={experience}
+                    setExperience={setExperience}
+                    rating={rating}
+                    setRating={setRating}
+                    gender={gender}
+                    setGender={setGender}
+                    availability={availability}
+                    setAvailability={setAvailability}
+                    consultationType={consultationType}
+                    setConsultationType={setConsultationType}
+                    date={date}
+                    setDate={setDate}
+                    onApply={handleApplyFilter}
+                  />
                 </motion.div>
               </div>
             )}
@@ -499,7 +698,7 @@ export default function DoctorsPage() {
             ) : doctors.length === 0 ? (
               <EmptyState
                 title="No doctors found matching your criteria."
-                message="Try adjusting or clearing your filters to discover other healthcare specialists."
+                message="Try adjusting or clearing your location/specialty filters to discover other healthcare specialists."
                 action={
                   <button
                     onClick={handleResetFilters}

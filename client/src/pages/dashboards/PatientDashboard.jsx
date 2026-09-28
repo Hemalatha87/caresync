@@ -78,10 +78,22 @@ export default function PatientDashboard() {
           <div className="lg:col-span-3">
             <div className="bg-white dark:bg-[#111B33] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6 sticky top-28">
               <div className="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
-                <div className="w-12 h-12 rounded-2xl bg-brand-600 text-white font-extrabold flex items-center justify-center text-lg shadow-sm">
-                  {user?.name?.charAt(0) || 'P'}
-                </div>
-                <div>
+                {user?.profileImage || user?.avatar ? (
+                  <img
+                    src={user?.profileImage || user?.avatar}
+                    alt={user?.name}
+                    className="w-12 h-12 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200";
+                    }}
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-2xl bg-brand-600 text-white font-extrabold flex items-center justify-center text-lg shadow-sm">
+                    {user?.name?.charAt(0) || 'P'}
+                  </div>
+                )}
+                <div className="min-w-0">
                   <h3 className="font-bold text-slate-900 dark:text-white text-sm truncate">{user?.name || 'Patient'}</h3>
                   <span className="text-[10px] font-bold text-brand-600 dark:text-cyan-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-full uppercase">
                     Patient Account
@@ -93,6 +105,13 @@ export default function PatientDashboard() {
                 <div className="px-4 py-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                   Menu
                 </div>
+
+                <Link
+                  to="/profile"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-cyan-400 transition-all"
+                >
+                  <User className="w-4 h-4 text-brand-600 dark:text-cyan-400" /> My Profile & Photo
+                </Link>
 
                 <button
                   onClick={() => setActiveTab('ALL')}

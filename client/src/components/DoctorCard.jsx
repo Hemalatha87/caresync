@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, MapPin, Award, CheckCircle2, ArrowRight, Video, Building2, Calendar, Clock, User } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -6,10 +6,15 @@ import { motion } from 'framer-motion';
 const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400';
 
 export default function DoctorCard({ doctor }) {
-  const [imgSrc, setImgSrc] = useState(
-    doctor?.image || doctor?.user?.avatar || DEFAULT_FALLBACK_IMAGE
-  );
+  const initialImage = doctor?.profileImage || doctor?.image || doctor?.user?.avatar || DEFAULT_FALLBACK_IMAGE;
+  const [imgSrc, setImgSrc] = useState(initialImage);
   const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    const nextImg = doctor?.profileImage || doctor?.image || doctor?.user?.avatar || DEFAULT_FALLBACK_IMAGE;
+    setImgSrc(nextImg);
+    setImgError(false);
+  }, [doctor]);
 
   if (!doctor) return null;
 
@@ -26,7 +31,7 @@ export default function DoctorCard({ doctor }) {
   return (
     <motion.div
       whileHover={{ y: -6, transition: { duration: 0.25 } }}
-      className="bg-white dark:bg-[#111B33] rounded-3xl p-5 shadow-sm border border-slate-200/80 dark:border-slate-800/80 hover:shadow-xl dark:hover:shadow-2xl hover:border-brand-300 dark:hover:border-cyan-500/40 transition-all duration-300 flex flex-col justify-between group"
+      className="bg-white dark:bg-[#111B33] rounded-3xl p-5 shadow-xs border border-slate-200/80 dark:border-slate-800/80 hover:shadow-xl dark:hover:shadow-2xl hover:border-brand-300 dark:hover:border-cyan-500/40 transition-all duration-300 flex flex-col justify-between group h-full"
     >
       <div>
         {/* Doctor Header & Image */}
@@ -38,15 +43,19 @@ export default function DoctorCard({ doctor }) {
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
-          <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-1">
+          <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md shadow-xs border border-slate-100 dark:border-slate-700 flex items-center gap-1">
             <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
             <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{doctor.rating || 4.8}</span>
             <span className="text-[10px] text-slate-400 dark:text-slate-400">({doctor.reviewsCount || 0})</span>
           </div>
 
-          {doctor.isVerified && (
-            <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-emerald-500/95 text-white backdrop-blur-md text-[11px] font-semibold flex items-center gap-1 shadow-sm">
+          {doctor.isVerified ? (
+            <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-emerald-500/95 text-white backdrop-blur-md text-[11px] font-semibold flex items-center gap-1 shadow-xs">
               <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+            </div>
+          ) : (
+            <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-amber-500/95 text-white backdrop-blur-md text-[11px] font-semibold flex items-center gap-1 shadow-xs">
+              Pending Verification
             </div>
           )}
         </div>
@@ -92,6 +101,30 @@ export default function DoctorCard({ doctor }) {
             <Clock className="w-3 h-3" /> {doctor.nextAvailableSlot || 'Available Today'}
           </span>
         </div>
+
+        {/* Suitable For Age Groups */}
+        {doctor.patientAgeGroups && doctor.patientAgeGroups.length > 0 && (
+          <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              Suitable For:
+            </span>
+            {doctor.patientAgeGroups.includes('kids') && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 text-[10px] font-bold border border-cyan-200 dark:border-cyan-800/60">
+                👶 Kids
+              </span>
+            )}
+            {doctor.patientAgeGroups.includes('adults') && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 text-[10px] font-bold border border-blue-200 dark:border-blue-800/60">
+                🧑 Adults
+              </span>
+            )}
+            {doctor.patientAgeGroups.includes('seniors') && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold border border-indigo-200 dark:border-indigo-800/60">
+                👴 Seniors
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Fee & Action Buttons */}

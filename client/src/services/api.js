@@ -47,8 +47,24 @@ export const authAPI = {
   getMe: () => API.get('/auth/me'),
 };
 
+export const userAPI = {
+  getProfile: () => API.get('/users/profile'),
+  updateProfile: (data) => API.put('/users/profile', data),
+  uploadProfileImage: (data) => {
+    if (data instanceof FormData) {
+      return API.post('/users/profile/image', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    }
+    return API.post('/users/profile/image', data);
+  },
+  removeProfileImage: () => API.delete('/users/profile/image'),
+  updateDoctorProfile: (data) => API.put('/users/doctor-profile', data),
+};
+
 export const doctorAPI = {
   getAll: (params) => API.get('/doctors', { params }),
+  getSpecializationCounts: () => API.get('/doctors/specialization-counts'),
   getById: (id, params) => API.get(`/doctors/${id}`, { params }),
   updateProfile: (id, data) => API.put(`/doctors/${id}`, data),
 };
@@ -68,8 +84,11 @@ export const reviewAPI = {
 
 export const adminAPI = {
   getStats: () => API.get('/admin/stats'),
-  getUsers: () => API.get('/admin/users'),
-  toggleDoctorVerification: (id) => API.put(`/admin/doctors/${id}/verify`),
+  getUsers: (params) => API.get('/admin/users', { params }),
+  toggleDoctorVerification: (id, data) => API.put(`/admin/doctors/${id}/verify`, data),
+  verifyDoctor: (id, data) => API.patch(`/admin/doctors/${id}/verify`, data),
+  updateUserStatus: (id, data) => API.patch(`/admin/users/${id}/status`, data),
+  deleteUser: (id) => API.delete(`/admin/users/${id}`),
 };
 
 export default API;
