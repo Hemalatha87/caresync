@@ -16,6 +16,16 @@
     @apply text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400;
     color-scheme: light dark;
   }
+
+  img {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .dark img {
+    filter: none;
+    opacity: 1;
+  }
 }
 
 @layer utilities {

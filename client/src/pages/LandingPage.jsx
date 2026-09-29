@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import adultCareImg from '../assets/adultCare.jpg';
+
 const AGE_GROUPS_META = [
   {
     id: 'kids',
@@ -35,7 +37,7 @@ const AGE_GROUPS_META = [
     buttonText: 'Find Adult Doctors',
     link: '/doctors?ageGroup=adults',
     icon: UserRound,
-    image: 'https://images.unsplash.com/photo-1622256040718-f39423ff2b0c?auto=format&fit=crop&q=80&w=800',
+    image: adultCareImg,
     alt: 'Adult healthcare consultation',
     badge: 'Adult Health',
   },
@@ -302,41 +304,43 @@ export default function LandingPage() {
                   key={group.id}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-30px' }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: idx * 0.1 }}
                   whileHover={{ y: -6, transition: { duration: 0.25 } }}
-                  className="bg-white dark:bg-[#111B33] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-lg shadow-brand-900/5 dark:shadow-2xl hover:border-brand-300 dark:hover:border-cyan-500/40 hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group overflow-hidden relative"
+                  className="bg-white dark:bg-[#0F1A36] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-700/80 shadow-lg shadow-brand-900/5 dark:shadow-[0_10px_30px_-5px_rgba(0,0,0,0.6)] hover:border-brand-300 dark:hover:border-cyan-400/60 hover:shadow-2xl dark:hover:shadow-cyan-950/50 transition-all duration-300 flex flex-col justify-between group overflow-hidden relative ring-1 ring-black/5 dark:ring-white/10"
                 >
                   {/* Subtle top-right ambient glow */}
-                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-bl from-brand-500/10 dark:from-cyan-500/10 via-transparent to-transparent rounded-full pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-bl from-brand-500/10 dark:from-cyan-500/20 via-transparent to-transparent rounded-full pointer-events-none group-hover:scale-125 transition-transform duration-500" />
 
                   <div>
-                    {/* Category Image with subtle blue overlay */}
-                    <div className="relative mb-5 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-850 aspect-[16/10]">
+                    {/* Category Image Wrapper with Explicit Layering */}
+                    <div className="relative w-full aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 mb-5 isolate">
+                      {/* 1. Healthcare Image (z-index: 1, full visibility) */}
                       <img
                         src={group.image}
                         alt={group.alt}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover block relative z-[1] group-hover:scale-105 transition-transform duration-500 opacity-100 visible [filter:none] [mix-blend-mode:normal]"
                         loading="lazy"
                       />
-                      {/* Natural subtle blue gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-brand-950/45 via-brand-950/10 to-transparent pointer-events-none" />
+                      {/* 2. Subtle overlay for readability (z-index: 2) */}
+                      <div className="absolute inset-0 z-[2] bg-gradient-to-b from-white/5 to-white/20 dark:from-[rgba(5,15,35,0.05)] dark:to-[rgba(5,15,35,0.25)] pointer-events-none" />
 
+                      {/* 3. Badges (z-index: 3) */}
                       {/* Top Age Range Badge */}
-                      <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md shadow-xs border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold flex items-center gap-1.5">
+                      <div className="absolute top-3 left-3 z-[3] px-3 py-1 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xs border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold flex items-center gap-1.5">
                         <span>{group.emoji}</span>
                         <span>{group.ageRange}</span>
                       </div>
 
                       {/* Bottom Category Tag */}
-                      <div className="absolute bottom-3 right-3 px-2.5 py-0.5 rounded-full bg-brand-600/90 dark:bg-cyan-600/90 text-white backdrop-blur-md text-[11px] font-bold shadow-xs">
+                      <div className="absolute bottom-3 right-3 z-[3] px-2.5 py-0.5 rounded-full bg-brand-600/95 dark:bg-cyan-600 text-white backdrop-blur-md text-[11px] font-bold shadow-xs">
                         {group.badge}
                       </div>
                     </div>
 
                     {/* Card Title & Icon */}
                     <div className="flex items-center gap-3 mb-2.5">
-                      <div className="w-10 h-10 rounded-2xl bg-brand-50 dark:bg-brand-950/80 text-brand-600 dark:text-cyan-400 flex items-center justify-center border border-brand-100 dark:border-brand-900/60 group-hover:scale-110 transition-transform shrink-0 shadow-xs">
+                      <div className="w-10 h-10 rounded-2xl bg-brand-50 dark:bg-brand-950/90 text-brand-600 dark:text-cyan-400 flex items-center justify-center border border-brand-100 dark:border-cyan-800/60 group-hover:scale-110 transition-transform shrink-0 shadow-xs">
                         <IconComp className="w-5 h-5" />
                       </div>
                       <div>
@@ -358,7 +362,7 @@ export default function LandingPage() {
                   {/* Action CTA Button */}
                   <Link
                     to={group.link}
-                    className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-brand-950/60 dark:to-cyan-950/60 hover:from-brand-600 hover:to-cyan-600 dark:hover:from-brand-600 dark:hover:to-cyan-600 text-brand-700 dark:text-cyan-300 hover:text-white dark:hover:text-white border border-brand-200/80 dark:border-cyan-800/60 hover:border-transparent font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-xs group/btn"
+                    className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-slate-800 dark:to-slate-800/90 hover:from-brand-600 hover:to-cyan-600 dark:hover:from-cyan-600 dark:hover:to-brand-600 text-brand-700 dark:text-cyan-300 hover:text-white dark:hover:text-white border border-brand-200/80 dark:border-cyan-700/60 hover:border-transparent font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-xs group/btn"
                   >
                     <span>{group.buttonText}</span>
                     <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
