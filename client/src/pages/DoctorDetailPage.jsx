@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { doctorAPI, appointmentAPI, reviewAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import HeartbeatPulse from '../components/animations/HeartbeatPulse';
 import {
   Star, MapPin, Award, CheckCircle2, Calendar, Clock,
   ShieldCheck, User, Phone, Mail, FileText, Check, AlertCircle, ArrowLeft,
@@ -161,18 +162,28 @@ export default function DoctorDetailPage() {
 
     setReviewSubmitting(true);
     try {
-      const res = await reviewAPI.add({
+      const res = await reviewAPI.create({
         doctorId: id,
         rating: newRating,
-        comment: newComment,
+        comment: newComment.trim(),
       });
       if (res.data.success) {
         setReviews([res.data.review, ...reviews]);
         setNewComment('');
-        setDoctor(prev => ({ ...prev, rating: res.data.doctorRating, reviewsCount: res.data.reviewsCount }));
+        setNewRating(5);
+        if (doctor) {
+          setDoctor({
+            ...doctor,
+            rating: (
+              (doctor.rating * (doctor.reviewsCount || 0) + newRating) /
+              ((doctor.reviewsCount || 0) + 1)
+            ).toFixed(1),
+            reviewsCount: (doctor.reviewsCount || 0) + 1,
+          });
+        }
       }
     } catch (err) {
-      console.error('Failed to post review', err);
+      console.error('Error submitting review', err);
     } finally {
       setReviewSubmitting(false);
     }
@@ -180,8 +191,12 @@ export default function DoctorDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 pb-20 flex items-center justify-center bg-slate-50 dark:bg-[#080E1E]">
-        <div className="w-10 h-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen pt-32 pb-20 max-w-7xl mx-auto px-4 animate-pulse space-y-6">
+        <div className="h-64 bg-white dark:bg-[#111B33] rounded-3xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 h-96 bg-white dark:bg-[#111B33] rounded-3xl" />
+          <div className="lg:col-span-4 h-96 bg-white dark:bg-[#111B33] rounded-3xl" />
+        </div>
       </div>
     );
   }
@@ -216,16 +231,21 @@ export default function DoctorDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Column: Doctor Profile Header & Details */}
-          <div className="lg:col-span-8 space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="lg:col-span-8 space-y-6"
+          >
             
             {/* Main Header Profile Card */}
             <div className="bg-white dark:bg-[#111B33] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row gap-6 items-start">
-              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border-2 border-brand-100 dark:border-slate-700 shadow-sm">
+              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border-2 border-brand-100 dark:border-slate-700 shadow-sm group">
                 <img
                   src={docImg}
                   alt={doctor.name}
                   onError={() => setDocImg(DEFAULT_FALLBACK_IMAGE)}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
@@ -244,6 +264,15 @@ export default function DoctorDetailPage() {
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Verified
                     </span>
                   )}
+                  
+                  {/* Subtle Availability Status Pulse */}
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>Available Today</span>
+                  </div>
                 </div>
 
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">{doctor.name}</h1>
@@ -444,11 +473,16 @@ export default function DoctorDetailPage() {
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Right Column: Interactive Booking Flow Panel */}
           <div className="lg:col-span-4">
-            <div className="bg-white dark:bg-[#111B33] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-lg sticky top-28 space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="bg-white dark:bg-[#111B33] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-lg sticky top-28 space-y-6"
+            >
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                 <div>
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 block">Consultation Fee</span>
@@ -496,7 +530,7 @@ export default function DoctorDetailPage() {
                     onChange={(e) => {
                       setSelectedDate(e.target.value);
                     }}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 transition-colors"
                   />
                 </div>
 
@@ -512,7 +546,7 @@ export default function DoctorDetailPage() {
                       className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
                         consultationType === 'In-Clinic'
                           ? 'bg-brand-600 dark:bg-cyan-600 text-white border-brand-600 dark:border-cyan-600 shadow-xs'
-                          : 'bg-slate-50 dark:bg-slate-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                          : 'bg-slate-50 dark:bg-slate-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                       }`}
                     >
                       <Building2 className="w-3.5 h-3.5" /> In-Clinic
@@ -523,7 +557,7 @@ export default function DoctorDetailPage() {
                       className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
                         consultationType === 'Video Consultation'
                           ? 'bg-brand-600 dark:bg-cyan-600 text-white border-brand-600 dark:border-cyan-600 shadow-xs'
-                          : 'bg-slate-50 dark:bg-slate-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                          : 'bg-slate-50 dark:bg-slate-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                       }`}
                     >
                       <Video className="w-3.5 h-3.5" /> Video Call
@@ -531,7 +565,7 @@ export default function DoctorDetailPage() {
                   </div>
                 </div>
 
-                {/* 3. Select Time Slot */}
+                {/* 3. Select Time Slot with Micro-Interactions */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
@@ -553,17 +587,26 @@ export default function DoctorDetailPage() {
                           onClick={() => {
                             if (!isBooked) setSelectedSlot(slot);
                           }}
-                          className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all relative ${
+                          className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all duration-200 relative flex items-center justify-center gap-1 ${
                             isBooked
                               ? 'bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-800 cursor-not-allowed line-through'
                               : isSelected
-                              ? 'bg-brand-600 dark:bg-cyan-600 text-white border-brand-600 dark:border-cyan-600 shadow-sm'
-                              : 'bg-slate-50 dark:bg-slate-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-cyan-500'
+                              ? 'bg-brand-600 dark:bg-cyan-600 text-white border-brand-600 dark:border-cyan-600 shadow-sm shadow-brand-600/20'
+                              : 'bg-slate-50 dark:bg-slate-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-400 dark:hover:border-cyan-500 hover:shadow-xs'
                           }`}
                         >
-                          {slot}
+                          {isSelected && !isBooked && (
+                            <motion.span
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                            >
+                              <Check className="w-3 h-3 text-white" />
+                            </motion.span>
+                          )}
+                          <span>{slot}</span>
                           {isBooked && (
-                            <span className="block text-[9px] no-underline font-normal text-rose-500">Booked</span>
+                            <span className="block text-[9px] no-underline font-normal text-rose-500 ml-1">Booked</span>
                           )}
                         </button>
                       );
@@ -583,7 +626,7 @@ export default function DoctorDetailPage() {
                     required
                     value={patientName}
                     onChange={(e) => setPatientName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 transition-colors"
                   />
 
                   <input
@@ -592,7 +635,7 @@ export default function DoctorDetailPage() {
                     required
                     value={patientPhone}
                     onChange={(e) => setPatientPhone(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 transition-colors"
                   />
 
                   <input
@@ -601,7 +644,7 @@ export default function DoctorDetailPage() {
                     required
                     value={patientEmail}
                     onChange={(e) => setPatientEmail(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 transition-colors"
                   />
 
                   <input
@@ -609,41 +652,69 @@ export default function DoctorDetailPage() {
                     placeholder="Reason for Visit (e.g. Skin rash, Checkup...)"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-brand-600 dark:focus:border-cyan-400 transition-colors"
                   />
                 </div>
 
                 {/* Submit Booking Button */}
-                <button
+                <motion.button
                   type="submit"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
                   disabled={bookingLoading || !selectedSlot}
                   className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-600 to-cyan-600 hover:from-brand-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-600/20 hover:shadow-lg transition-all"
                 >
                   {bookingLoading ? 'Securing Slot...' : `Confirm & Book Appointment (₹${doctor.consultationFee})`}
-                </button>
+                </motion.button>
               </form>
-            </div>
+            </motion.div>
           </div>
 
         </div>
       </div>
 
-      {/* Booking Success Confirmation Modal */}
+      {/* Booking Success Confirmation Modal with Premium Animation Sequence */}
       <AnimatePresence>
         {bookingSuccessModal && createdAppointment && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.85, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="bg-white dark:bg-[#111B33] rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border border-slate-200/80 dark:border-slate-800 space-y-6"
             >
-              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                <CheckCircle2 className="w-10 h-10" />
+              <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
+                {/* Expanding pulse circle */}
+                <motion.div
+                  initial={{ scale: 0, opacity: 0.8 }}
+                  animate={{ scale: [1, 1.4, 1.2], opacity: [0.8, 0.2, 0.4] }}
+                  transition={{ duration: 1.2, ease: 'easeOut' }}
+                  className="absolute inset-0 rounded-full bg-emerald-400/20"
+                />
+                
+                {/* Heartbeat Pulse Icon Container */}
+                <HeartbeatPulse duration={1.8} scaleMax={1.08}>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', delay: 0.2, stiffness: 400, damping: 18 }}
+                    className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center shadow-inner"
+                  >
+                    <CheckCircle2 className="w-10 h-10" />
+                  </motion.div>
+                </HeartbeatPulse>
               </div>
 
               <div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Appointment Confirmed!</h3>
+                <motion.h3
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white"
+                >
+                  Appointment Confirmed!
+                </motion.h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Your appointment has been registered and confirmed in CareSync.</p>
               </div>
 

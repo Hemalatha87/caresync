@@ -30,11 +30,15 @@ export default function DoctorCard({ doctor }) {
 
   return (
     <motion.div
+      initial={{ opacity: 0, y: 25, scale: 0.98 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: '-30px' }}
+      transition={{ duration: 0.45, ease: 'easeOut' }}
       whileHover={{ y: -6, transition: { duration: 0.25 } }}
-      className="bg-white dark:bg-[#111B33] rounded-3xl p-5 shadow-xs border border-slate-200/80 dark:border-slate-800/80 hover:shadow-xl dark:hover:shadow-2xl hover:border-brand-300 dark:hover:border-cyan-500/40 transition-all duration-300 flex flex-col justify-between group h-full"
+      className="bg-white dark:bg-[#111B33] rounded-3xl p-5 shadow-sm border border-slate-200/80 dark:border-slate-800/80 hover:shadow-xl dark:hover:shadow-2xl hover:border-brand-300 dark:hover:border-cyan-500/40 transition-all duration-300 flex flex-col justify-between group h-full relative"
     >
       <div>
-        {/* Doctor Header & Image */}
+        {/* Doctor Header & Image with Subtle Zoom on Hover */}
         <div className="relative mb-4 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800 aspect-[4/3]">
           <img
             src={imgSrc}
@@ -141,12 +145,14 @@ export default function DoctorCard({ doctor }) {
           >
             View Profile
           </Link>
-          <Link
-            to={`/doctors/${doctor._id}`}
-            className="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-500 text-white text-xs font-bold flex items-center gap-1 shadow-md shadow-brand-600/20 hover:shadow-lg transition-all duration-200"
-          >
-            Book Visit <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+            <Link
+              to={`/doctors/${doctor._id}`}
+              className="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-500 text-white text-xs font-bold flex items-center gap-1 shadow-md shadow-brand-600/20 hover:shadow-lg transition-all duration-200"
+            >
+              Book Visit <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </motion.div>
         </div>
       </div>
     </motion.div>

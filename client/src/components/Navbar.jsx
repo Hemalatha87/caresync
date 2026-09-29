@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import HeartbeatPulse from './animations/HeartbeatPulse';
 import { Heart, Activity, User, LogOut, LayoutDashboard, Menu, X, Shield, Calendar, Stethoscope, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -54,12 +55,14 @@ export default function Navbar() {
           
           {/* CareSync Brand Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-cyan-400 p-0.5 shadow-md shadow-brand-600/20 group-hover:scale-105 transition-transform duration-300">
-              <div className="w-full h-full bg-white dark:bg-[#0B1329] rounded-[10px] flex items-center justify-center relative overflow-hidden">
-                <Heart className="w-5 h-5 text-brand-600 dark:text-cyan-400 fill-brand-100 dark:fill-cyan-950" />
-                <Activity className="w-3.5 h-3.5 text-cyan-500 absolute -top-0.5 -right-0.5 animate-pulse" />
+            <HeartbeatPulse duration={3} scaleMax={1.06}>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-cyan-400 p-0.5 shadow-md shadow-brand-600/20 group-hover:scale-105 transition-transform duration-300">
+                <div className="w-full h-full bg-white dark:bg-[#0B1329] rounded-[10px] flex items-center justify-center relative overflow-hidden">
+                  <Heart className="w-5 h-5 text-brand-600 dark:text-cyan-400 fill-brand-100 dark:fill-cyan-950" />
+                  <Activity className="w-3.5 h-3.5 text-cyan-500 absolute -top-0.5 -right-0.5" />
+                </div>
               </div>
-            </div>
+            </HeartbeatPulse>
             <div className="flex flex-col">
               <span className="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-brand-900 to-brand-600 dark:from-white dark:via-cyan-200 dark:to-cyan-400">
                 Care<span className="text-brand-600 dark:text-cyan-400">Sync</span>

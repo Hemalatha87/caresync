@@ -4,13 +4,17 @@ import HeroScene from '../components/3D/HeroScene';
 import DoctorCard from '../components/DoctorCard';
 import SpecialtyCard from '../components/SpecialtyCard';
 import AnimatedBackground from '../components/AnimatedBackground';
+import ECGLine from '../components/animations/ECGLine';
+import HeartbeatPulse from '../components/animations/HeartbeatPulse';
+import AnimatedCounter from '../components/animations/AnimatedCounter';
+import ScrollReveal from '../components/animations/ScrollReveal';
 import { doctorAPI } from '../services/api';
 import {
   Search, MapPin, Calendar, ShieldCheck, Award, Clock, ArrowRight,
   UserCheck, CheckCircle2, Star, Users, Stethoscope, Heart, Activity,
   ChevronRight, Sparkles, Building2, PhoneCall, Baby, UserRound, Accessibility
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 
 import adultCareImg from '../assets/adultCare.jpg';
 
@@ -75,6 +79,21 @@ export default function LandingPage() {
   const [selectedSpecialty, setSelectedSpecialty] = useState('All');
   const navigate = useNavigate();
 
+  // Mouse Parallax values for Hero
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const heroParallaxX = useTransform(mouseX, [-500, 500], [-8, 8]);
+  const heroParallaxY = useTransform(mouseY, [-500, 500], [-8, 8]);
+
+  const handleMouseMove = (e) => {
+    if (window.innerWidth < 1024) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
   useEffect(() => {
     const fetchDoctorsAndCounts = async () => {
       try {
@@ -122,23 +141,34 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#080E1E] transition-colors duration-300 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#080E1E] transition-colors duration-300 relative overflow-x-hidden">
       <AnimatedBackground />
 
-      {/* 1. HERO SECTION WITH 3D EXPERIENCE */}
-      <section className="relative pt-28 pb-16 lg:pt-36 lg:pb-24 bg-gradient-to-b from-brand-50/60 dark:from-brand-950/20 via-white/80 dark:via-[#080E1E] to-slate-50 dark:to-[#080E1E]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 1. HERO SECTION WITH ECG BACKGROUND & 3D EXPERIENCE */}
+      <section
+        onMouseMove={handleMouseMove}
+        className="relative pt-28 pb-16 lg:pt-36 lg:pb-24 bg-gradient-to-b from-brand-50/60 dark:from-brand-950/20 via-white/80 dark:via-[#080E1E] to-slate-50 dark:to-[#080E1E] overflow-hidden"
+      >
+        {/* Ambient ECG Heartbeat Line in Hero Background */}
+        <div className="absolute bottom-4 left-0 right-0 pointer-events-none opacity-40 dark:opacity-30">
+          <ECGLine height={90} opacity={0.3} />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
-            {/* Left Hero Content */}
+            {/* Left Hero Content with Subtle Parallax */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
+              style={{ x: heroParallaxX, y: heroParallaxY }}
               className="lg:col-span-7 space-y-6"
             >
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200/80 dark:border-cyan-800/80 text-cyan-800 dark:text-cyan-300 text-xs font-bold uppercase tracking-wider shadow-xs">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                <HeartbeatPulse scaleMax={1.12}>
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                </HeartbeatPulse>
                 Smart Healthcare Platform
               </div>
 
@@ -153,7 +183,7 @@ export default function LandingPage() {
               {/* Quick Doctor Search Box */}
               <form
                 onSubmit={handleSearchSubmit}
-                className="bg-white dark:bg-[#111B33] p-3 rounded-2xl sm:rounded-3xl shadow-xl shadow-brand-900/5 dark:shadow-2xl border border-slate-200/80 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-2 max-w-2xl"
+                className="bg-white dark:bg-[#111B33] p-3 rounded-2xl sm:rounded-3xl shadow-xl shadow-brand-900/5 dark:shadow-2xl border border-slate-200/80 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-2 max-w-2xl transition-all duration-200 focus-within:ring-2 focus-within:ring-brand-500/20 dark:focus-within:ring-cyan-400/20"
               >
                 <div className="sm:col-span-6 flex items-center gap-2.5 px-3 py-2 bg-slate-50 dark:bg-slate-850 rounded-xl">
                   <Search className="w-4 h-4 text-brand-600 dark:text-cyan-400 shrink-0" />
@@ -180,12 +210,14 @@ export default function LandingPage() {
                   </select>
                 </div>
 
-                <button
+                <motion.button
                   type="submit"
-                  className="sm:col-span-2 w-full py-3 bg-gradient-to-r from-brand-600 to-cyan-600 hover:from-brand-700 hover:to-cyan-700 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="sm:col-span-2 w-full py-3 bg-gradient-to-r from-brand-600 to-cyan-600 hover:from-brand-700 hover:to-cyan-700 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-brand-500/25 transition-all flex items-center justify-center gap-1"
                 >
                   Find
-                </button>
+                </motion.button>
               </form>
 
               {/* Trust Indicators */}
@@ -207,7 +239,7 @@ export default function LandingPage() {
 
             {/* Right Interactive 3D Hero Scene */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
               className="lg:col-span-5 relative"
@@ -219,21 +251,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 2. TOP SPECIALIZATIONS SECTION WITH HEALTHCARE ANIMATED BACKGROUND */}
+      {/* 2. TOP SPECIALIZATIONS SECTION */}
       <section className="py-20 relative bg-white dark:bg-[#0B1329] border-y border-slate-100 dark:border-slate-800/80 transition-colors duration-300 overflow-hidden">
-        {/* Healthcare Subtle Ambient Glows & Grid */}
+        {/* Subtle Ambient Glows */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-500/5 dark:bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/5 dark:bg-brand-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0284c705_1px,transparent_1px),linear-gradient(to_bottom,#0284c705_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#38bdf804_1px,transparent_1px),linear-gradient(to_bottom,#38bdf804_1px,transparent_1px)] bg-[size:3rem_3rem] pointer-events-none [mask-image:radial-gradient(ellipse_70%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.5 }}
-            className="text-center max-w-2xl mx-auto mb-14"
-          >
+          <ScrollReveal direction="up" className="text-center max-w-2xl mx-auto mb-14">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3 border border-brand-100 dark:border-brand-900/60">
               <Activity className="w-3.5 h-3.5" />
               Explore Medical Fields
@@ -244,25 +269,19 @@ export default function LandingPage() {
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">
               Connect with experienced healthcare experts across specialized disciplines in Andhra Pradesh and Telangana.
             </p>
-          </motion.div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {SPECIALTY_META.map((spec, i) => {
               const countValue = specialtyCounts[spec.title] ?? 0;
               return (
-                <motion.div
-                  key={spec.title}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-30px' }}
-                  transition={{ duration: 0.4, delay: i * 0.06 }}
-                >
+                <ScrollReveal key={spec.title} delay={i * 0.05} direction="up">
                   <SpecialtyCard
                     title={spec.title}
                     description={spec.description}
                     count={countValue}
                   />
-                </motion.div>
+                </ScrollReveal>
               );
             })}
           </div>
@@ -276,13 +295,7 @@ export default function LandingPage() {
         <div className="absolute top-1/2 right-0 w-80 h-80 bg-brand-500/5 dark:bg-brand-500/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.5 }}
-            className="text-center max-w-2xl mx-auto mb-14"
-          >
+          <ScrollReveal direction="up" className="text-center max-w-2xl mx-auto mb-14">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 text-xs font-bold uppercase tracking-widest mb-3 border border-cyan-100 dark:border-cyan-900/60">
               <Users className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
               Specialized Care By Stage
@@ -293,7 +306,7 @@ export default function LandingPage() {
             <p className="text-slate-600 dark:text-slate-300 text-sm mt-2 font-medium">
               Connect with the right healthcare professionals for every stage of life.
             </p>
-          </motion.div>
+          </ScrollReveal>
 
           {/* 3 Age Group Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -304,7 +317,7 @@ export default function LandingPage() {
                   key={group.id}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
+                  viewport={{ once: true, margin: '-40px' }}
                   transition={{ duration: 0.5, delay: idx * 0.1 }}
                   whileHover={{ y: -6, transition: { duration: 0.25 } }}
                   className="bg-white dark:bg-[#0F1A36] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-700/80 shadow-lg shadow-brand-900/5 dark:shadow-[0_10px_30px_-5px_rgba(0,0,0,0.6)] hover:border-brand-300 dark:hover:border-cyan-400/60 hover:shadow-2xl dark:hover:shadow-cyan-950/50 transition-all duration-300 flex flex-col justify-between group overflow-hidden relative ring-1 ring-black/5 dark:ring-white/10"
@@ -322,17 +335,15 @@ export default function LandingPage() {
                         className="w-full h-full object-cover block relative z-[1] group-hover:scale-105 transition-transform duration-500 opacity-100 visible [filter:none] [mix-blend-mode:normal]"
                         loading="lazy"
                       />
-                      {/* 2. Subtle overlay for readability (z-index: 2) */}
+                      {/* 2. Subtle overlay for readability */}
                       <div className="absolute inset-0 z-[2] bg-gradient-to-b from-white/5 to-white/20 dark:from-[rgba(5,15,35,0.05)] dark:to-[rgba(5,15,35,0.25)] pointer-events-none" />
 
-                      {/* 3. Badges (z-index: 3) */}
-                      {/* Top Age Range Badge */}
+                      {/* 3. Badges */}
                       <div className="absolute top-3 left-3 z-[3] px-3 py-1 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xs border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold flex items-center gap-1.5">
                         <span>{group.emoji}</span>
                         <span>{group.ageRange}</span>
                       </div>
 
-                      {/* Bottom Category Tag */}
                       <div className="absolute bottom-3 right-3 z-[3] px-2.5 py-0.5 rounded-full bg-brand-600/95 dark:bg-cyan-600 text-white backdrop-blur-md text-[11px] font-bold shadow-xs">
                         {group.badge}
                       </div>
@@ -396,8 +407,10 @@ export default function LandingPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredDoctors.map(doctor => (
-                <DoctorCard key={doctor._id} doctor={doctor} />
+              {featuredDoctors.map((doctor, idx) => (
+                <ScrollReveal key={doctor._id} delay={idx * 0.08} direction="up">
+                  <DoctorCard doctor={doctor} />
+                </ScrollReveal>
               ))}
             </div>
           )}
@@ -407,55 +420,47 @@ export default function LandingPage() {
       {/* 4. HOW IT WORKS */}
       <section className="py-20 bg-white dark:bg-[#0B1329] border-y border-slate-100 dark:border-slate-800/80 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          <ScrollReveal direction="up" className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-cyan-400 mb-2">Seamless Process</h2>
             <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">How CareSync Works</p>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Four easy steps to get the medical care you deserve.</p>
-          </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
             {steps.map((step, idx) => {
               const IconComp = step.icon;
               return (
-                <motion.div
-                  key={step.num}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  className="bg-slate-50 dark:bg-[#111B33] p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 relative group hover:border-cyan-500/40 transition-colors"
-                >
-                  <span className="text-4xl font-black text-brand-200 dark:text-slate-700/60 absolute top-6 right-6 font-mono">
-                    {step.num}
-                  </span>
-                  <div className="w-12 h-12 rounded-2xl bg-brand-600 dark:bg-cyan-600 text-white flex items-center justify-center mb-6 shadow-md shadow-brand-600/20 group-hover:scale-110 transition-transform">
-                    <IconComp className="w-6 h-6" />
+                <ScrollReveal key={step.num} delay={idx * 0.1} direction="up">
+                  <div className="bg-slate-50 dark:bg-[#111B33] p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 relative group hover:border-cyan-500/40 hover:shadow-lg transition-all duration-300 h-full">
+                    <span className="text-4xl font-black text-brand-200 dark:text-slate-700/60 absolute top-6 right-6 font-mono">
+                      {step.num}
+                    </span>
+                    <div className="w-12 h-12 rounded-2xl bg-brand-600 dark:bg-cyan-600 text-white flex items-center justify-center mb-6 shadow-md shadow-brand-600/20 group-hover:scale-110 transition-transform">
+                      <IconComp className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{step.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{step.desc}</p>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{step.title}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{step.desc}</p>
-                </motion.div>
+                </ScrollReveal>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* 5. STATISTICS */}
+      {/* 5. STATISTICS WITH ANIMATED COUNTERS */}
       <section className="py-16 bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 dark:from-[#080E1E] dark:via-[#0B1329] dark:to-[#080E1E] text-white border-y border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {stats.map((s, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
-                className="space-y-1"
-              >
-                <p className="text-3xl sm:text-5xl font-black text-cyan-400 font-sans tracking-tight">{s.count}</p>
-                <p className="text-xs sm:text-sm font-medium text-slate-300 uppercase tracking-wider">{s.label}</p>
-              </motion.div>
+              <ScrollReveal key={idx} delay={idx * 0.1} direction="up">
+                <div className="space-y-1">
+                  <p className="text-3xl sm:text-5xl font-black text-cyan-400 font-sans tracking-tight">
+                    <AnimatedCounter value={s.count} />
+                  </p>
+                  <p className="text-xs sm:text-sm font-medium text-slate-300 uppercase tracking-wider">{s.label}</p>
+                </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -464,27 +469,33 @@ export default function LandingPage() {
       {/* 6. CALL TO ACTION */}
       <section className="py-20 bg-slate-50 dark:bg-[#080E1E] transition-colors duration-300">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-brand-600 via-brand-700 to-cyan-600 rounded-3xl p-10 sm:p-14 text-white text-center shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-            <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 tracking-tight">Ready to Take Control of Your Health?</h2>
-            <p className="text-brand-100 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
-              Join thousands of satisfied patients who rely on CareSync for seamless healthcare appointment scheduling.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                to="/doctors"
-                className="w-full sm:w-auto px-8 py-3.5 bg-white text-brand-700 hover:bg-brand-50 text-sm font-bold rounded-2xl shadow-lg transition-all"
-              >
-                Find a Doctor Now
-              </Link>
-              <Link
-                to="/register"
-                className="w-full sm:w-auto px-8 py-3.5 bg-brand-800/60 hover:bg-brand-800 text-white text-sm font-bold rounded-2xl border border-white/20 transition-all"
-              >
-                Create Account
-              </Link>
+          <ScrollReveal direction="up">
+            <div className="bg-gradient-to-r from-brand-600 via-brand-700 to-cyan-600 rounded-3xl p-10 sm:p-14 text-white text-center shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+              <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 tracking-tight">Ready to Take Control of Your Health?</h2>
+              <p className="text-brand-100 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+                Join thousands of satisfied patients who rely on CareSync for seamless healthcare appointment scheduling.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Link
+                    to="/doctors"
+                    className="inline-block w-full sm:w-auto px-8 py-3.5 bg-white text-brand-700 hover:bg-brand-50 text-sm font-bold rounded-2xl shadow-lg transition-all"
+                  >
+                    Find a Doctor Now
+                  </Link>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Link
+                    to="/register"
+                    className="inline-block w-full sm:w-auto px-8 py-3.5 bg-brand-800/60 hover:bg-brand-800 text-white text-sm font-bold rounded-2xl border border-white/20 transition-all"
+                  >
+                    Create Account
+                  </Link>
+                </motion.div>
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
